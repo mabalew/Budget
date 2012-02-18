@@ -1,1 +1,6 @@
 db
+src/*.o
+budget
+budget-cli
+report
+valgrind.log

@@ -88,20 +88,18 @@ int get_products_count(int category_id) {
 		exit(0);
 	}
 
-	char *sql; 
+	char *sql = malloc(54); 
 	if (category_id == 0) {
-		sql = malloc((strlen("SELECT COUNT(*) FROM products") * sizeof(char)) + 1);
 		strcpy(sql, "SELECT COUNT(*) FROM products");
 	} else {
 		char *length;
 		sprintf(length, "%d", category_id);
- 		sql = malloc((strlen("SELECT COUNT(*) FROM products WHERE category_id=") + strlen(length) * sizeof(char)) + 1);
 		free(length);
 		sql = sqlite3_mprintf("SELECT COUNT(*) FROM products WHERE category_id=%d", category_id);
 	}
 
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
-
+	
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
 		exit(error);
@@ -112,6 +110,7 @@ int get_products_count(int category_id) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
+	free(sql);
 	return row_count;
 }
 
