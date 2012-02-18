@@ -1,0 +1,1 @@
+14.02.2012: removed memory leaks problems for: e ls, c ls, s ls.
