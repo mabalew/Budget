@@ -45,15 +45,18 @@ int update_product(Product *old_product, Product *new_product) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("UPDATE products SET product_name='%s', category_id='%d' WHERE product_name='%s'", new_product->name, new_product->category_id, old_product->name);
-	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	char *length = malloc(10);
+	sprintf(length, "%d", new_product->category_id);
+	char *sql = malloc(strlen("UPDATE products SET product_name='', category_id='' WHERE product_name=''") + strlen(new_product->name) + strlen(length) + strlen(old_product->name) + 1);
+	free(length);
+	sql = sqlite3_mprintf("UPDATE products SET product_name='%s', category_id='%d' WHERE product_name='%s'", new_product->name, new_product->category_id, old_product->name);
+	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		sqlite3_close(conn);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int add_to_category(Product *p) {
@@ -199,7 +202,6 @@ int get_product_by_id(Product *p) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	sqlite3_free(sql);
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
@@ -225,7 +227,6 @@ int get_product_by_name(Product *p) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	sqlite3_free(sql);
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);

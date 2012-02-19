@@ -9,10 +9,10 @@
 void free_product_list(Product *list[], int size);
 
 void __update_product(char *argv[]) {
-	Product *po = (Product *)malloc(sizeof po);
-	Product *pn = (Product *)malloc(sizeof pn);
-	po->name = (char *)malloc(sizeof (char));
-	pn->name = (char *)malloc(sizeof (char));
+	Product *po = (Product *)malloc(sizeof (Product));
+	Product *pn = (Product *)malloc(sizeof (Product));
+	po->name = malloc(strlen(argv[3]) + 1);
+	pn->name = malloc(strlen(argv[4]) + 1);
 	po->name = argv[3];
 	pn->name = argv[4];
 	pn->category_id = atoi(argv[5]);
@@ -23,22 +23,25 @@ void __update_product(char *argv[]) {
 
 void __add_product(char *argv[]) {
 	Product *p = (Product*)malloc(sizeof p);
+	p->name = malloc(strlen(argv[3]));
 	p->name = argv[3];
 	p->category_id = atoi(argv[4]);
 	add_product(p);
+	free(p->name);
 	free(p);
 }
 
 void __del_product(char *argv[]) {
 	Product *p = (Product *) malloc(sizeof p);
-	p->name = (char *)malloc(sizeof(char));
+	p->name = malloc(strlen(argv[3]));
 	p->name = argv[3];
 	del_product(p);
+	free(p->name);
 	free(p);
 }
 
 void __add_to_category(char *argv[]) {
-	Product *p = (Product *)malloc(sizeof p);
+	Product *p = malloc(sizeof p);
 	p->id = atoi(argv[3]);
 	p->category_id = atoi(argv[4]);
 	add_to_category(p);
@@ -95,6 +98,8 @@ void __list_products_in_category(int category_id) {
 			c->id = list[counter]->category_id;
 			get_category_by_id(c);
 			printf("\tkategoria: %s\n", c->name);
+			free(c->name);
+			free(c);
 			puts("----------------------------------");
 		}
 	}
