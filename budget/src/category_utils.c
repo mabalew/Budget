@@ -5,42 +5,49 @@
 #include "category_utils.h"
 
 void free_category_list(Category *list[], int size);
+void verify_number_of_parameters(int argc, int should_be);
 
-void __update_category(char *argv[]) {
+int __update_category(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 5);
 	Category *co = (Category *)malloc(sizeof co);
 	Category *cn = (Category *)malloc(sizeof cn);
 	co->name = (char *)malloc(sizeof (char));
 	cn->name = (char *)malloc(sizeof (char));
 	co->name = argv[3];
 	cn->name = argv[4];
-	update_category(co, cn);
+	int status = update_category(co, cn);
 	free(co);
 	free(cn);
+	return status;
 }
 
-void __add_category(char *argv[]) {
+int __add_category(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
 	Category *c = (Category*)malloc(sizeof c);
 	c->name = argv[3];
-	add_category(c);
+	int status = add_category(c);
 	free(c);
+	return status;
 }
 
-void __del_category(char *argv[]) {
+int __del_category(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
 	Category *c = (Category *) malloc(sizeof c);
 	c->name = (char *)malloc(sizeof(char));
 	c->name = argv[3];
-	del_category(c);
+	int status = del_category(c);
 	free(c);
+	return status;
 }
 
-void __list_categories() {
+int __list_categories() {
 	int categories_count = get_categories_count();
 	int counter = 0;
 	Category *list[categories_count];
 	puts("==================================");
 	printf("Znaleziono %d\n", categories_count);
 	puts("==================================");
-	get_all_categories(list);
+	int status = get_all_categories(list);
 	if (categories_count != 0) {
 		for (counter = 0; counter < categories_count; counter++) {
 			printf("\tid: %d\n", list[counter]->id);
@@ -50,6 +57,7 @@ void __list_categories() {
 	}
 	puts("==================================");
 	free_category_list(list, categories_count);
+	return status;
 }
 
 void free_category_list(Category *list[], int size) {
@@ -60,18 +68,18 @@ void free_category_list(Category *list[], int size) {
 	}
 }
 
-void manage_category(int argc, char *argv[]) {
+int manage_category(int argc, char *argv[]) {
 	if (argc == 2) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		__update_category(argv);
+		return __update_category(argc, argv);
 	} else if (is_add_string(argv[2])) {
-		__add_category(argv);
+		return __add_category(argc, argv);
 	} else if (is_delete_string(argv[2])) {
-		__del_category(argv);
+		return __del_category(argc, argv);
 	} else if (is_list_string(argv[2])) {
-		__list_categories();
+		return __list_categories();
 	} else if (is_help_for_category_module(argv[2])) {
 		__show_help_for_category_module();
 	} else {

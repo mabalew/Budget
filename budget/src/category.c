@@ -11,7 +11,7 @@ int add_category(Category *c) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("INSERT INTO categories(category_name) VALUES('%q')", c->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO categories(category_name) VALUES('%q')", c->name);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n",error);
@@ -19,7 +19,7 @@ int add_category(Category *c) {
 		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int del_category(Category *c) {
@@ -28,7 +28,7 @@ int del_category(Category *c) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("DELETE FROM categories WHERE category_name='%s'", c->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; DELETE FROM categories WHERE category_name='%s'", c->name);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -36,7 +36,7 @@ int del_category(Category *c) {
 		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int update_category(Category *old_category, Category *new_category) {
@@ -45,7 +45,7 @@ int update_category(Category *old_category, Category *new_category) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("UPDATE categories SET category_name='%s' WHERE category_name='%s'", new_category->name, old_category->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE categories SET category_name='%s' WHERE category_name='%s'", new_category->name, old_category->name);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -53,7 +53,7 @@ int update_category(Category *old_category, Category *new_category) {
 		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int get_categories_count() {
@@ -94,14 +94,14 @@ int get_all_categories(Category *list[]) {
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
-		exit(0);
+		return error;
 	}
 
 	char *sql = "SELECT * FROM categories";
 	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -113,7 +113,7 @@ int get_all_categories(Category *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int get_category_by_id(Category *c) {
