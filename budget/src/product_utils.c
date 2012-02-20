@@ -20,12 +20,10 @@ void __update_product(char *argv[]) {
 }
 
 void __add_product(char *argv[]) {
-	Product *p = (Product*)malloc(sizeof p);
-	p->name = malloc(strlen(argv[3]));
+	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
 	p->category_id = atoi(argv[4]);
 	add_product(p);
-	free(p->name);
 	free(p);
 }
 

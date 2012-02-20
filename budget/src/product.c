@@ -12,14 +12,13 @@ int add_product(Product *p) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("INSERT INTO products(product_name, category_id) VALUES('%q', %d)", p->name, p->category_id);
-	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n",error);
-		sqlite3_close(conn);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int del_product(Product *p) {
