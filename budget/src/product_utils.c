@@ -5,16 +5,9 @@
 #include "category.h"
 #include "product.h"
 #include "product_utils.h"
+#include "utils.h"
 
 void free_product_list(Product *list[], int size);
-void verify_number_of_parameters(int argc, int should_be);
-
-void verify_number_of_parameters(int argc, int should_be) {
-	if (argc < should_be) {
-		printf("Niepoprawna liczba parametrow\n");
-		exit(0);
-	}
-}
 
 int __update_product(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 6);

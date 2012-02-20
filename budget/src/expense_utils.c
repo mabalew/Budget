@@ -4,53 +4,61 @@
 #include "help.h"
 #include "expense.h"
 #include "expense_utils.h"
+#include "utils.h"
 
 void free_expense_list(Expense *list[], int size);
 
-void __update_expense(char *argv[]) {
-	Expense *eo = (Expense *)malloc(sizeof (Expense));
-	Expense *en = (Expense *)malloc(sizeof (Expense));
-	init_expense(eo);
-	init_expense(en);
+int __update_expense(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 9);
+
+	Expense *eo = malloc(sizeof (Expense));
+	Expense *en = malloc(sizeof (Expense));
+	//init_expense(eo);
+	//init_expense(en);
 	eo->id = atoi(argv[3]);
-	strcpy(en->exp_date, argv[4]);
+	en->exp_date = argv[4];
 	en->product_id = atoi(argv[5]);
 	en->shop_id = atoi(argv[6]);
 	en->amount = atof(argv[7]);
 	en->price = atof(argv[8]);
-	update_expense(eo, en);
+	int status = update_expense(eo, en);
 	free(eo);
 	free(en);
+	return status;
 }
 
-void __add_expense(char *argv[]) {
-	Expense *e = (Expense*)malloc(sizeof (Expense));
-	init_expense(e);
+int __add_expense(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 8);
+	Expense *e = malloc(sizeof (Expense));
+	//init_expense(e);
 	e->exp_date = argv[3];
 	e->product_id = atoi(argv[4]);
 	e->shop_id = atoi(argv[5]);
 	e->amount = atof(argv[6]);
 	e->price = atof(argv[7]);
-	add_expense(e);
+	int status = add_expense(e);
 	free(e);
+	return status;
 }
 
-void __del_expense(char *argv[]) {
+int __del_expense(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
 	Expense *e = malloc(sizeof (Expense));
-	init_expense(e);
+	//init_expense(e);
 	e->id = atoi(argv[3]);
-	del_expense(e);
+	int status = del_expense(e);
 	free(e);
+	return status;
 }
 
-void __list_expenses() {
+int __list_expenses() {
 	int expenses_count = get_expenses_count();
 	int counter = 0;
 	Expense *list[expenses_count];
 	puts("==================================");
 	printf("Znaleziono %d\n", expenses_count);
 	puts("==================================");
-	get_all_expenses(list);
+	int status = get_all_expenses(list);
 	if (expenses_count > 0) {
 		for (counter = 0; counter < expenses_count; counter++) {
 			print_expense(list[counter]);
@@ -58,6 +66,7 @@ void __list_expenses() {
 	}
 	puts("==================================");
 	free_expense_list(list, expenses_count);
+	return status;
 }
 
 void free_expense_list(Expense *list[], int size) {
@@ -78,18 +87,18 @@ void print_expense(Expense *e) {
 	puts("----------------------------------");
 }
 
-void manage_expense(int argc, char *argv[]) {
+int manage_expense(int argc, char *argv[]) {
 	if (argc == 2) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		__update_expense(argv);
+		return __update_expense(argc, argv);
 	} else if (is_add_string(argv[2])) {
-		__add_expense(argv);
+		return __add_expense(argc, argv);
 	} else if (is_delete_string(argv[2])) {
-		__del_expense(argv);
+		return __del_expense(argc, argv);
 	} else if (is_list_string(argv[2])) {
-		__list_expenses();
+		return __list_expenses();
 	} else if (is_help_for_expense_module(argv[2])) {
 		__show_help_for_expense_module();
 	} else {

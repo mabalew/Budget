@@ -11,7 +11,7 @@ int add_shop(Shop *s) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("INSERT INTO shops(shop_name) VALUES('%q')", s->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO shops(shop_name) VALUES('%q')", s->name);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n",error);
@@ -27,7 +27,7 @@ int del_shop(Shop *s) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("DELETE FROM shops WHERE shop_name='%s'", s->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; DELETE FROM shops WHERE shop_name='%s'", s->name);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 	}
@@ -42,7 +42,7 @@ int update_shop(Shop *old_shop, Shop *new_shop) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("UPDATE shops SET shop_name='%s' WHERE shop_name='%s'", new_shop->name, old_shop->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE shops SET shop_name='%s' WHERE shop_name='%s'", new_shop->name, old_shop->name);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);

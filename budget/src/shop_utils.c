@@ -3,6 +3,7 @@
 #include <string.h>
 #include "shop.h"
 #include "shop_utils.h"
+#include "utils.h"
 
 void free_shop_list(Shop *list[], int size);
 
@@ -14,7 +15,8 @@ void __show_help_for_shop_module() {
 	puts("\tlist lub ls\n");
 }
 
-int __update_shop(char *argv[]) {
+int __update_shop(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 5);
 	Shop *so = malloc(sizeof (Shop));
 	Shop *sn = malloc(sizeof (Shop));
 	so->name = (char *)argv[3];
@@ -25,7 +27,8 @@ int __update_shop(char *argv[]) {
 	return status;
 }
 
-int __add_shop(char *argv[]) {
+int __add_shop(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
 	Shop *s = (Shop*)malloc(sizeof s);
 	s->name = (char *)argv[3];
 	int status = add_shop(s);
@@ -33,7 +36,8 @@ int __add_shop(char *argv[]) {
 	return status;
 }
 
-int __del_shop(char *argv[]) {
+int __del_shop(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
 	Shop *s = malloc(sizeof (Shop));
 	s->name = argv[3];
 	int status = del_shop(s);
@@ -74,13 +78,13 @@ int manage_shop(int argc, char *argv[]) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		return __update_shop(argv);
+		return __update_shop(argc, argv);
 	} else if (is_add_string(argv[2])) {
-		return __add_shop(argv);
+		return __add_shop(argc, argv);
 	} else if (is_delete_string(argv[2])) {
-		return __del_shop(argv);
+		return __del_shop(argc, argv);
 	} else if (is_update_string(argv[2])) {
-		return __update_shop(argv);
+		return __update_shop(argc, argv);
 	} else if (is_list_string(argv[2])) {
 		return __list_shops();
 	} else if (is_help_for_shop_module(argv[2])) {
