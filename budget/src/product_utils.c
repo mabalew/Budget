@@ -30,11 +30,9 @@ void __add_product(char *argv[]) {
 }
 
 void __del_product(char *argv[]) {
-	Product *p = (Product *) malloc(sizeof p);
-	p->name = malloc(strlen(argv[3]));
+	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
 	del_product(p);
-	free(p->name);
 	free(p);
 }
 
