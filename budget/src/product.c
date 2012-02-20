@@ -62,13 +62,13 @@ int add_to_category(Product *p) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("UPDATE products SET category_id=%d WHERE id=%d", p->category_id, p->id);
-	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int get_products_count(int category_id) {

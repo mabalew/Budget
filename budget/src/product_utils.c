@@ -37,7 +37,7 @@ void __del_product(char *argv[]) {
 }
 
 void __add_to_category(char *argv[]) {
-	Product *p = malloc(sizeof p);
+	Product *p = malloc(sizeof (Product));
 	p->id = atoi(argv[3]);
 	p->category_id = atoi(argv[4]);
 	add_to_category(p);
