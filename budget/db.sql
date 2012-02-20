@@ -1,5 +1,5 @@
 CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100));
-CREATE TABLE products(id integer primary key autoincrement, product_name varchar2(100), category_id int);
+CREATE TABLE products(id integer primary key autoincrement, product_name varchar2(100), category_id int, foreign key(category_id) references categories(id));
 CREATE TABLE shops(id integer primary key autoincrement, shop_name varchar2(100) unique);
 CREATE TABLE users(id integer primary key autoincrement, login varchar2(50), password varchar2(32));
 CREATE TABLE expenses(id integer primary key autoincrement, exp_date datetime default CURRENT_TIMESTAMP, amount double default 1.0, product_id integer not null, shop_id integer default 0, price double, foreign key(shop_id) references shops(id), foreign key(product_id) references products(id));
