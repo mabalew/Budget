@@ -7,8 +7,18 @@
 #include "product_utils.h"
 
 void free_product_list(Product *list[], int size);
+void verify_number_of_parameters(int argc, int should_be);
 
-void __update_product(char *argv[]) {
+void verify_number_of_parameters(int argc, int should_be) {
+	if (argc < should_be) {
+		printf("Niepoprawna liczba parametrow\n");
+		exit(0);
+	}
+}
+
+void __update_product(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 6);
+
 	Product *po = (Product *)malloc(sizeof (Product));
 	Product *pn = (Product *)malloc(sizeof (Product));
 	po->name = argv[3];
@@ -19,7 +29,9 @@ void __update_product(char *argv[]) {
 	free(pn);
 }
 
-void __add_product(char *argv[]) {
+void __add_product(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 5);
+
 	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
 	p->category_id = atoi(argv[4]);
@@ -27,14 +39,18 @@ void __add_product(char *argv[]) {
 	free(p);
 }
 
-void __del_product(char *argv[]) {
+void __del_product(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
+
 	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
 	del_product(p);
 	free(p);
 }
 
-void __add_to_category(char *argv[]) {
+void __add_to_category(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 5);
+
 	Product *p = malloc(sizeof (Product));
 	p->id = atoi(argv[3]);
 	p->category_id = atoi(argv[4]);
@@ -105,17 +121,17 @@ void manage_product(int argc, char *argv[]) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		__update_product(argv);
+		__update_product(argc, argv);
 	} else if (is_add_string(argv[2])) {
-		__add_product(argv);
+		__add_product(argc, argv);
 	} else if (is_delete_string(argv[2])) {
-		__del_product(argv);
+		__del_product(argc, argv);
 	} else if (is_list_string(argv[2])) {
 		__list_products();
 	} else if (is_help_string(argv[2])) {
 		__show_help_for_product_module();
 	} else if (is_add_to_category_string(argv[2])) {
-		__add_to_category(argv);
+		__add_to_category(argc, argv);
 	} else if (is_list_products_in_category_string(argv[2])) {
 		__list_products_in_category(atoi(argv[3]));
 	} else {
