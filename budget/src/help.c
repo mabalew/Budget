@@ -19,7 +19,7 @@ void __show_help_for_product_module() {
 	puts("\tadd lub a [nazwa]");
 	puts("\tupdate lub upd lub u [istniejąca nazwa] [nowa nazwa]");
 	puts("\tdelete lub del lub d [nazwa]");
-	puts("\tatc [identyfikator kategorii]");
+	puts("\tatc [identyfikator produkut] [identyfikator kategorii]");
 	puts("\tlc [identyfikator kategorii]");
 	puts("\tlist lub ls\n");
 }
