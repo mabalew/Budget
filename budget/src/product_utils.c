@@ -49,7 +49,7 @@ void __del_product(int argc, char *argv[]) {
 }
 
 void __add_to_category(int argc, char *argv[]) {
-	verify_number_of_parameters(argc, 5);
+	verify_number_of_parameters(argc, 4);
 
 	Product *p = malloc(sizeof (Product));
 	p->id = atoi(argv[3]);
@@ -90,7 +90,10 @@ void free_product_list(Product *list[], int size) {
 	}
 }
 
-void __list_products_in_category(int category_id) {
+void __list_products_in_category(int argc, char *argv[]) {
+	verify_number_of_parameters(argc, 4);
+
+	int category_id = atoi(argv[3]);
 	int products_count = get_products_count(category_id);
 	int counter = 0;
 	Product *list[products_count];
@@ -133,7 +136,7 @@ void manage_product(int argc, char *argv[]) {
 	} else if (is_add_to_category_string(argv[2])) {
 		__add_to_category(argc, argv);
 	} else if (is_list_products_in_category_string(argv[2])) {
-		__list_products_in_category(atoi(argv[3]));
+		__list_products_in_category(argc, argv);
 	} else {
 		__show_common_help();
 	}

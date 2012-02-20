@@ -11,7 +11,7 @@ int add_product(Product *p) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("INSERT INTO products(product_name, category_id) VALUES('%q', %d)", p->name, p->category_id);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO products(product_name, category_id) VALUES('%q', %d)", p->name, p->category_id);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n",error);
@@ -27,7 +27,7 @@ int del_product(Product *p) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("DELETE FROM products WHERE product_name='%s'", p->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; DELETE FROM products WHERE product_name='%s'", p->name);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -43,7 +43,7 @@ int update_product(Product *old_product, Product *new_product) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("UPDATE products SET product_name='%s', category_id='%d' WHERE product_name='%s'", new_product->name, new_product->category_id, old_product->name);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE products SET product_name='%s', category_id='%d' WHERE product_name='%s'", new_product->name, new_product->category_id, old_product->name);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -60,7 +60,7 @@ int add_to_category(Product *p) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("UPDATE products SET category_id=%d WHERE id=%d", p->category_id, p->id);
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE products SET category_id=%d WHERE id=%d", p->category_id, p->id);
 	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -76,7 +76,6 @@ int get_products_count(int category_id) {
 	const char *tail;
 	int error = 0;
 	int row_count = 0;
-	int counter = 0;
 
 	error = sqlite3_open(DB_FILE, &conn);
 

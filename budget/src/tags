@@ -28,13 +28,13 @@ USER_UTILS_H	user_utils.h	2;"	d	file:
 User	user.h	/^} User;$/;"	t	typeref:struct:user	file:
 __add_category	category_utils.c	/^void __add_category(char *argv[]) {$/;"	f
 __add_expense	expense_utils.c	/^void __add_expense(char *argv[]) {$/;"	f
-__add_product	product_utils.c	/^void __add_product(char *argv[]) {$/;"	f
+__add_product	product_utils.c	/^void __add_product(int argc, char *argv[]) {$/;"	f
 __add_shop	shop_utils.c	/^void __add_shop(char *argv[]) {$/;"	f
-__add_to_category	product_utils.c	/^void __add_to_category(char *argv[]) {$/;"	f
+__add_to_category	product_utils.c	/^void __add_to_category(int argc, char *argv[]) {$/;"	f
 __add_user	user_utils.c	/^void __add_user(char *argv[]) {$/;"	f
 __del_category	category_utils.c	/^void __del_category(char *argv[]) {$/;"	f
 __del_expense	expense_utils.c	/^void __del_expense(char *argv[]) {$/;"	f
-__del_product	product_utils.c	/^void __del_product(char *argv[]) {$/;"	f
+__del_product	product_utils.c	/^void __del_product(int argc, char *argv[]) {$/;"	f
 __del_shop	shop_utils.c	/^void __del_shop(char *argv[]) {$/;"	f
 __del_user	user_utils.c	/^void __del_user(char *argv[]) {$/;"	f
 __get_user_by_id	user_utils.c	/^void __get_user_by_id(char *argv[]) {$/;"	f
@@ -42,7 +42,7 @@ __get_user_by_login	user_utils.c	/^void __get_user_by_login(char *argv[]) {$/;"	
 __list_categories	category_utils.c	/^void __list_categories() {$/;"	f
 __list_expenses	expense_utils.c	/^void __list_expenses() {$/;"	f
 __list_products	product_utils.c	/^void __list_products() {$/;"	f
-__list_products_in_category	product_utils.c	/^void __list_products_in_category(int category_id) {$/;"	f
+__list_products_in_category	product_utils.c	/^void __list_products_in_category(int argc, char *argv[]) {$/;"	f
 __list_shops	shop_utils.c	/^void __list_shops() {$/;"	f
 __list_users	user_utils.c	/^void __list_users() {$/;"	f
 __login	user_utils.c	/^void __login(char *argv[]) {$/;"	f
@@ -54,7 +54,7 @@ __show_help_for_shop_module	shop_utils.c	/^void __show_help_for_shop_module() {$
 __show_help_for_user_module	help.c	/^void __show_help_for_user_module() {$/;"	f
 __update_category	category_utils.c	/^void __update_category(char *argv[]) {$/;"	f
 __update_expense	expense_utils.c	/^void __update_expense(char *argv[]) {$/;"	f
-__update_product	product_utils.c	/^void __update_product(char *argv[]) {$/;"	f
+__update_product	product_utils.c	/^void __update_product(int argc, char *argv[]) {$/;"	f
 __update_shop	shop_utils.c	/^void __update_shop(char *argv[]) {$/;"	f
 __update_user	user_utils.c	/^void __update_user(char *argv[]) {$/;"	f
 add_category	category.c	/^int add_category(Category *c) {$/;"	f
@@ -63,11 +63,11 @@ add_product	product.c	/^int add_product(Product *p) {$/;"	f
 add_shop	shop.c	/^int add_shop(Shop *s) {$/;"	f
 add_to_category	product.c	/^int add_to_category(Product *p) {$/;"	f
 add_user	user.c	/^int add_user(User *p) {$/;"	f
-amount	expense.h	/^	float *amount;$/;"	m	struct:expense	file:
+amount	expense.h	/^	float amount;$/;"	m	struct:expense	file:
 category	category.h	/^typedef struct category {$/;"	s	file:
 category	expense.h	/^	char *category;$/;"	m	struct:expense	file:
 category	report.c	/^	char *category;$/;"	m	struct:report_row	file:
-category_id	expense.h	/^	int *category_id;$/;"	m	struct:expense	file:
+category_id	expense.h	/^	int category_id;$/;"	m	struct:expense	file:
 category_id	product.h	/^	int category_id;$/;"	m	struct:product	file:
 check_db_open	db.c	/^void check_db_open(int error) {$/;"	f
 count_monthly_categories	report.c	/^int count_monthly_categories(char *month, char *year) {$/;"	f
@@ -87,6 +87,10 @@ expenses.product_id	expenses.sql	/^		amount double default 1.0,$/;"	F
 expenses.shop_id	expenses.sql	/^		product_id integer not null,$/;"	F
 fetch_monthly_report	report.c	/^void fetch_monthly_report(char *month, char *year, Row **rows) {$/;"	f
 fill_expense	expense.c	/^void fill_expense(sqlite3_stmt *res, Expense *e) {$/;"	f
+free_category_list	category_utils.c	/^void free_category_list(Category *list[], int size) {$/;"	f
+free_expense_list	expense_utils.c	/^void free_expense_list(Expense *list[], int size) {$/;"	f
+free_product_list	product_utils.c	/^void free_product_list(Product *list[], int size) {$/;"	f
+free_shop_list	shop_utils.c	/^void free_shop_list(Shop *list[], int size) {$/;"	f
 get_all_categories	category.c	/^int get_all_categories(Category *list[]) {$/;"	f
 get_all_expenses	expense.c	/^int get_all_expenses(Expense *list[]) {$/;"	f
 get_all_products	product.c	/^int get_all_products(Product *list[]) {$/;"	f
@@ -112,11 +116,11 @@ get_user_by_login	user.c	/^int get_user_by_login(User *p) {$/;"	f
 get_users_count	user.c	/^int get_users_count() {$/;"	f
 help	help.c	/^void help(char *h) {$/;"	f
 id	category.h	/^	int id;$/;"	m	struct:category	file:
-id	expense.h	/^	int *id;$/;"	m	struct:expense	file:
+id	expense.h	/^	int id;$/;"	m	struct:expense	file:
 id	product.h	/^	int id;$/;"	m	struct:product	file:
 id	shop.h	/^	int id;$/;"	m	struct:shop	file:
 id	user.h	/^	int  id;$/;"	m	struct:user	file:
-init_expense	expense.c	/^void init_expense(Expense *e) {$/;"	f
+init_expense	expense.c	/^void init_expense(Expense *e, sqlite3_stmt *res) {$/;"	f
 is_add_string	string_verifier.c	/^bool is_add_string(char *s) {$/;"	f
 is_add_to_category_string	string_verifier.c	/^bool is_add_to_category_string(char *s) {$/;"	f
 is_delete_string	string_verifier.c	/^bool is_delete_string(char *s) {$/;"	f
@@ -146,17 +150,17 @@ name	product.h	/^	char *name;$/;"	m	struct:product	file:
 name	shop.h	/^	char *name;$/;"	m	struct:shop	file:
 nick	user.h	/^	char *nick;$/;"	m	struct:user	file:
 password	user.h	/^	char *password;$/;"	m	struct:user	file:
-price	expense.h	/^	float *price;$/;"	m	struct:expense	file:
+price	expense.h	/^	float price;$/;"	m	struct:expense	file:
 print_expense	expense_utils.c	/^void print_expense(Expense *e) {$/;"	f
 print_monthly_report	report.c	/^void print_monthly_report(Row **rows, int row_count) {$/;"	f
 product	expense.h	/^	char *product;$/;"	m	struct:expense	file:
 product	product.h	/^typedef struct product {$/;"	s	file:
-product_id	expense.h	/^	int *product_id;$/;"	m	struct:expense	file:
+product_id	expense.h	/^	int product_id;$/;"	m	struct:expense	file:
 report_row	report.c	/^typedef struct report_row {$/;"	s	file:
 shop	expense.h	/^	char *shop;$/;"	m	struct:expense	file:
 shop	shop.h	/^typedef struct shop {$/;"	s	file:
-shop_id	expense.h	/^	int *shop_id;$/;"	m	struct:expense	file:
-unit_price	expense.h	/^	float *unit_price;$/;"	m	struct:expense	file:
+shop_id	expense.h	/^	int shop_id;$/;"	m	struct:expense	file:
+unit_price	expense.h	/^	float unit_price;$/;"	m	struct:expense	file:
 update_category	category.c	/^int update_category(Category *old_category, Category *new_category) {$/;"	f
 update_expense	expense.c	/^int update_expense(Expense *old_expense, Expense *new_expense) {$/;"	f
 update_product	product.c	/^int update_product(Product *old_product, Product *new_product) {$/;"	f
@@ -165,3 +169,4 @@ update_user	user.c	/^int update_user(User *old_user, User *new_user) {$/;"	f
 user	user.h	/^typedef struct user {$/;"	s	file:
 v_expenses	v_expenses.sql	/^create view v_expenses as$/;"	V
 value	report.c	/^	double *value;$/;"	m	struct:report_row	file:
+verify_number_of_parameters	product_utils.c	/^void verify_number_of_parameters(int argc, int should_be) {$/;"	f
