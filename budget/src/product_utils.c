@@ -11,8 +11,6 @@ void free_product_list(Product *list[], int size);
 void __update_product(char *argv[]) {
 	Product *po = (Product *)malloc(sizeof (Product));
 	Product *pn = (Product *)malloc(sizeof (Product));
-	po->name = malloc(strlen(argv[3]) + 1);
-	pn->name = malloc(strlen(argv[4]) + 1);
 	po->name = argv[3];
 	pn->name = argv[4];
 	pn->category_id = atoi(argv[5]);
