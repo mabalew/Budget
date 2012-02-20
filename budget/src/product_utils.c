@@ -90,7 +90,6 @@ void __list_products_in_category(int category_id) {
 			printf("\tnazwa: %s\n", list[counter]->name);
 			printf("\tid kategorii: %d\n", list[counter]->category_id);
 			Category *c = malloc(sizeof(Category));
-			c->name = malloc(sizeof(char));
 			c->id = list[counter]->category_id;
 			get_category_by_id(c);
 			printf("\tkategoria: %s\n", c->name);
@@ -100,7 +99,7 @@ void __list_products_in_category(int category_id) {
 		}
 	}
 	puts("==================================");
-
+	free_product_list(list, products_count);
 }
 
 void manage_product(int argc, char *argv[]) {

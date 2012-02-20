@@ -86,13 +86,11 @@ int get_products_count(int category_id) {
 		exit(0);
 	}
 
-	char *sql = malloc(54); 
+	char *sql;
 	if (category_id == 0) {
+		sql = malloc(54); 
 		strcpy(sql, "SELECT COUNT(*) FROM products");
 	} else {
-		char *length;
-		sprintf(length, "%d", category_id);
-		free(length);
 		sql = sqlite3_mprintf("SELECT COUNT(*) FROM products WHERE category_id=%d", category_id);
 	}
 
@@ -108,7 +106,7 @@ int get_products_count(int category_id) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	free(sql);
+	sqlite3_free(sql);
 	return row_count;
 }
 
@@ -161,7 +159,7 @@ int get_products_in_category(int category_id, Product *list[]) {
 	}
 
 	char *sql = sqlite3_mprintf("SELECT * FROM products WHERE category_id=%d", category_id);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
 		exit(error);
@@ -177,6 +175,7 @@ int get_products_in_category(int category_id, Product *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
+	sqlite3_free(sql);
 	return 0;
 }
 
