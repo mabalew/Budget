@@ -16,7 +16,7 @@ void verify_number_of_parameters(int argc, int should_be) {
 	}
 }
 
-void __update_product(int argc, char *argv[]) {
+int __update_product(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 6);
 
 	Product *po = (Product *)malloc(sizeof (Product));
@@ -24,48 +24,52 @@ void __update_product(int argc, char *argv[]) {
 	po->name = argv[3];
 	pn->name = argv[4];
 	pn->category_id = atoi(argv[5]);
-	update_product(po, pn);
+	int status = update_product(po, pn);
 	free(po);
 	free(pn);
+	return status;
 }
 
-void __add_product(int argc, char *argv[]) {
+int __add_product(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 5);
 
 	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
 	p->category_id = atoi(argv[4]);
-	add_product(p);
+	int status = add_product(p);
 	free(p);
+	return status;
 }
 
-void __del_product(int argc, char *argv[]) {
+int __del_product(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 
 	Product *p = malloc(sizeof (Product));
 	p->name = argv[3];
-	del_product(p);
+	int status = del_product(p);
 	free(p);
+	return status;
 }
 
-void __add_to_category(int argc, char *argv[]) {
+int __add_to_category(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 
 	Product *p = malloc(sizeof (Product));
 	p->id = atoi(argv[3]);
 	p->category_id = atoi(argv[4]);
-	add_to_category(p);
+	int status = add_to_category(p);
 	free(p);
+	return status;
 }
 
-void __list_products() {
+int __list_products() {
 	int products_count = get_products_count(0);
 	int counter = 0;
 	Product *list[products_count];
 	puts("==================================");
 	printf("Znaleziono %d\n", products_count);
 	puts("==================================");
-	get_all_products(list);
+	int status = get_all_products(list);
 	printf("%-4s %-20s %-12s %-25s\n","id","nazwa","id kategorii","kategoria");
 	if (products_count != 0) {
 		for (counter = 0; counter < products_count; counter++) {
@@ -80,6 +84,7 @@ void __list_products() {
 	}
 	puts("==================================");
 	free_product_list(list, products_count);
+	return status;
 }
 
 void free_product_list(Product *list[], int size) {
@@ -90,7 +95,7 @@ void free_product_list(Product *list[], int size) {
 	}
 }
 
-void __list_products_in_category(int argc, char *argv[]) {
+int __list_products_in_category(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 
 	int category_id = atoi(argv[3]);
@@ -100,7 +105,7 @@ void __list_products_in_category(int argc, char *argv[]) {
 	puts("==================================");
 	printf("Znaleziono %d\n", products_count);
 	puts("==================================");
-	get_products_in_category(category_id, list);
+	int status = get_products_in_category(category_id, list);
 	if (products_count != 0) {
 		for (counter = 0; counter < products_count; counter++) {
 			printf("\tid: %d\n", list[counter]->id);
@@ -117,27 +122,29 @@ void __list_products_in_category(int argc, char *argv[]) {
 	}
 	puts("==================================");
 	free_product_list(list, products_count);
+	return status;
 }
 
-void manage_product(int argc, char *argv[]) {
+int manage_product(int argc, char *argv[]) {
 	if (argc == 2) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		__update_product(argc, argv);
+		return __update_product(argc, argv);
 	} else if (is_add_string(argv[2])) {
-		__add_product(argc, argv);
+		return __add_product(argc, argv);
 	} else if (is_delete_string(argv[2])) {
-		__del_product(argc, argv);
+		return __del_product(argc, argv);
 	} else if (is_list_string(argv[2])) {
-		__list_products();
+		return __list_products();
 	} else if (is_help_string(argv[2])) {
-		__show_help_for_product_module();
+		return __show_help_for_product_module();
 	} else if (is_add_to_category_string(argv[2])) {
-		__add_to_category(argc, argv);
+		return __add_to_category(argc, argv);
 	} else if (is_list_products_in_category_string(argv[2])) {
-		__list_products_in_category(argc, argv);
+		return __list_products_in_category(argc, argv);
 	} else {
 		__show_common_help();
 	}
+	return 0;
 }

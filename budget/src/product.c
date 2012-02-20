@@ -120,14 +120,14 @@ int get_all_products(Product *list[]) {
 
 	if (error) {
 		puts("Can't open database");
-		exit(0);
+		return error;
 	}
 
 	char *sql = "SELECT * FROM products ORDER BY category_id";
 	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -140,7 +140,7 @@ int get_all_products(Product *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int get_products_in_category(int category_id, Product *list[]) {
@@ -154,14 +154,14 @@ int get_products_in_category(int category_id, Product *list[]) {
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
-		exit(0);
+		return error;
 	}
 
 	char *sql = sqlite3_mprintf("SELECT * FROM products WHERE category_id=%d", category_id);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -175,7 +175,7 @@ int get_products_in_category(int category_id, Product *list[]) {
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
 	sqlite3_free(sql);
-	return 0;
+	return error;
 }
 
 int get_product_by_id(Product *p) {
@@ -198,7 +198,7 @@ int get_product_by_id(Product *p) {
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 	return error;
 }
@@ -223,7 +223,7 @@ int get_product_by_name(Product *p) {
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 	return error;
 }

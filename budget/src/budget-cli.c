@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
 		manage_category(argc, argv);
 	} else if (strcmp(argv[1], "p") == 0 || strcmp(argv[1], "prod") == 0 ||
 			strcmp(argv[1], "product") == 0) {
-		manage_product(argc, argv);
+		return manage_product(argc, argv);
 	} else if (strcmp(argv[1], "s") == 0 || strcmp(argv[1], "shop") == 0) {
 		manage_shop(argc, argv);
 	} else if (strcmp(argv[1], "e") == 0 || strcmp(argv[1], "exp") == 0 || strcmp(argv[1], "expense") == 0) {
