@@ -14,41 +14,41 @@ void __show_help_for_shop_module() {
 	puts("\tlist lub ls\n");
 }
 
-void __update_shop(char *argv[]) {
-	Shop *so = (Shop *)malloc(sizeof so);
-	Shop *sn = (Shop *)malloc(sizeof sn);
-	so->name = (char *)malloc(sizeof (char));
-	sn->name = (char *)malloc(sizeof (char));
+int __update_shop(char *argv[]) {
+	Shop *so = malloc(sizeof (Shop));
+	Shop *sn = malloc(sizeof (Shop));
 	so->name = (char *)argv[3];
 	sn->name = (char *)argv[4];
-	update_shop(so, sn);
+	int status = update_shop(so, sn);
 	free(so);
 	free(sn);
+	return status;
 }
 
-void __add_shop(char *argv[]) {
+int __add_shop(char *argv[]) {
 	Shop *s = (Shop*)malloc(sizeof s);
 	s->name = (char *)argv[3];
-	add_shop(s);
+	int status = add_shop(s);
 	free(s);
+	return status;
 }
 
-void __del_shop(char *argv[]) {
-	Shop *s = (Shop *) malloc(sizeof s);
-	s->name = (char *)malloc(sizeof(char));
-	s->name = (char *)argv[3];
-	del_shop(s);
+int __del_shop(char *argv[]) {
+	Shop *s = malloc(sizeof (Shop));
+	s->name = argv[3];
+	int status = del_shop(s);
 	free(s);
+	return status;
 }
 
-void __list_shops() {
+int __list_shops() {
 	int shops_count = get_shops_count();
 	int counter = 0;
 	puts("==================================");
 	printf("Znaleziono %d\n", shops_count);
 	puts("==================================");
 	Shop *list[shops_count];
-	get_all_shops(list);
+	int status = get_all_shops(list);
 	if (shops_count != 0) {
 		for (counter = 0; counter < shops_count; counter++) {
 			printf("\tid: %d\n", list[counter]->id);
@@ -58,6 +58,7 @@ void __list_shops() {
 	}
 	puts("==================================");
 	free_shop_list(list, shops_count);
+	return status;
 }
 
 void free_shop_list(Shop *list[], int size) {
@@ -68,21 +69,24 @@ void free_shop_list(Shop *list[], int size) {
 	}
 }
 
-void manage_shop(int argc, char *argv[]) {
+int manage_shop(int argc, char *argv[]) {
 	if (argc == 2) {
 		__show_common_help();
 	}
 	if (is_update_string(argv[2])) {
-		__update_shop(argv);
+		return __update_shop(argv);
 	} else if (is_add_string(argv[2])) {
-		__add_shop(argv);
+		return __add_shop(argv);
 	} else if (is_delete_string(argv[2])) {
-		__del_shop(argv);
+		return __del_shop(argv);
+	} else if (is_update_string(argv[2])) {
+		return __update_shop(argv);
 	} else if (is_list_string(argv[2])) {
-		__list_shops();
+		return __list_shops();
 	} else if (is_help_for_shop_module(argv[2])) {
 		__show_help_for_shop_module();
 	} else {
 		__show_common_help();
 	}
+	return 0;
 }

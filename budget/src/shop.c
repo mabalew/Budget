@@ -15,11 +15,10 @@ int add_shop(Shop *s) {
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n",error);
-		sqlite3_close(conn);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int del_shop(Shop *s) {
@@ -29,14 +28,12 @@ int del_shop(Shop *s) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("DELETE FROM shops WHERE shop_name='%s'", s->name);
-	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
-		sqlite3_close(conn);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int update_shop(Shop *old_shop, Shop *new_shop) {
@@ -46,14 +43,13 @@ int update_shop(Shop *old_shop, Shop *new_shop) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("UPDATE shops SET shop_name='%s' WHERE shop_name='%s'", new_shop->name, old_shop->name);
-	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	error = sqlite3_exec(conn, sql, NULL, NULL, NULL);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		sqlite3_close(conn);
-		return error;
 	}
 	sqlite3_close(conn);
-	return 0;
+	sqlite3_free(sql);
+	return error;
 }
 
 int get_shops_count() {
@@ -66,14 +62,14 @@ int get_shops_count() {
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
-		exit(0);
+		return error;
 	}
 	char *sql = "SELECT COUNT(*) FROM shops";
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -94,14 +90,14 @@ int get_all_shops(Shop *list[]) {
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
-		exit(0);
+		return error;
 	}
 
 	char *sql = "SELECT * FROM shops";
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
-		exit(error);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -113,7 +109,7 @@ int get_all_shops(Shop *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	return 0;
+	return error;
 }
 
 int get_shop_by_id(Shop *s) {
@@ -125,9 +121,10 @@ int get_shop_by_id(Shop *s) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("SELECT * FROM shops WHERE id=%u", s->id);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
+		s->name = malloc(strlen(sqlite3_column_text(res, 1)) + 1);
 		strcpy(s->name, sqlite3_column_text(res, 1));
 	}
 	sqlite3_finalize(res);
@@ -136,7 +133,6 @@ int get_shop_by_id(Shop *s) {
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
-		exit(error);
 	}
 	return error;
 }
@@ -150,7 +146,7 @@ int get_shop_by_name(Shop *s) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("SELECT * FROM shops WHERE shop_name='%s'", s->name);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		s->id = sqlite3_column_int(res, 0);
@@ -161,7 +157,6 @@ int get_shop_by_name(Shop *s) {
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
-		exit(error);
 	}
 	return error;
 }

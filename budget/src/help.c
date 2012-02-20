@@ -9,6 +9,7 @@ void __show_common_help() {
 	puts("\t\tcategory / cat / c");
 	puts("\t\texpense / exp / e");
 	puts("\t\tproduct / prod / p");
+	puts("\t\tshop / s");
 	puts("\t\tuser / u");
 	puts("\n\tŻeby uzyskać szczegółowe komendy dla modułu, uruchom:\n\tbudget modul help\n");
 	exit(0);
