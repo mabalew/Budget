@@ -57,5 +57,8 @@ utils.o: utils.c utils.h
 help.o: help.c
 	$(CC) -c help.c -o help.o $(OPTS)
 
+create_db: ../db.sql
+	sqlite3 ../db/budget.db < ../db.sql
+
 clean:
 	rm -f *.o ../budget-cli ../budget ../report
