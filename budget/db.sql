@@ -1,8 +1,33 @@
-CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100));
-CREATE TABLE products(id integer primary key autoincrement, product_name varchar2(100), category_id int, foreign key(category_id) references categories(id));
-CREATE TABLE shops(id integer primary key autoincrement, shop_name varchar2(100) unique);
-CREATE TABLE users(id integer primary key autoincrement, login varchar2(50), password varchar2(32));
-CREATE TABLE expenses(id integer primary key autoincrement, exp_date datetime default CURRENT_TIMESTAMP, amount double default 1.0, product_id integer not null, shop_id integer default 0, price double, foreign key(shop_id) references shops(id), foreign key(product_id) references products(id));
+CREATE TABLE categories(
+	id INTEGER primary key autoincrement,
+	category_name VARCHAR2(100) NOT NULL
+);
+CREATE TABLE products(
+	id INTEGER primary key autoincrement,
+	product_name VARCHAR2(100) NOT NULL,
+	category_id int DEFAULT 0,
+	foreign key(category_id) references categories(id)
+);
+CREATE UNIQUE INDEX idx_products ON products(product_name, category_id);
+CREATE TABLE shops(
+	id INTEGER primary key autoincrement,
+	shop_name VARCHAR2(100) UNIQUE NOT NULL
+);
+CREATE TABLE users(
+	id INTEGER primary key autoincrement,
+	login VARCHAR2(50) NOT NULL UNIQUE,
+	password VARCHAR2(32)
+);
+CREATE TABLE expenses(
+	id INTEGER primary key autoincrement,
+	exp_date datetime DEFAULT CURRENT_TIMESTAMP,
+	amount DOUBLE DEFAULT 1.0,
+	product_id INTEGER NOT NULL,
+	shop_id INTEGER DEFAULT 0,
+	price DOUBLE NOT NULL,
+	foreign key(shop_id) references shops(id),
+	foreign key(product_id) references products(id)
+);
 CREATE VIEW v_expenses as
 select e.id [exp id],
 	e.exp_date,
@@ -22,3 +47,6 @@ where
 	e.product_id = p.id and
 	e.shop_id = s.id
 group by e.id;
+
+INSERT INTO shops VALUES(0, '-');
+INSERT INTO categories VALUES(0, '-');
