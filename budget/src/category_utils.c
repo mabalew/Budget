@@ -48,11 +48,11 @@ int __list_categories() {
 	printf("Znaleziono %d\n", categories_count);
 	puts("==================================");
 	int status = get_all_categories(list);
-	if (categories_count != 0) {
+	if (categories_count != 0 && NULL != list[0]) {
+		printf("id  | nazwa\n");
+		printf("----+-----------------------------\n");
 		for (counter = 0; counter < categories_count; counter++) {
-			printf("\tid: %d\n", list[counter]->id);
-			printf("\tnazwa: %s\n", list[counter]->name);
-			puts("----------------------------------");
+			printf("%.3d | %s\n", list[counter]->id, list[counter]->name);
 		}
 	}
 	puts("==================================");
