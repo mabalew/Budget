@@ -1,16 +1,34 @@
 CC=gcc
 OPTS=-lsqlite3 -g3 -O0
+TARGET_PATH=..
 
-all: budget budget-cli report
+all: bin
+
+bin: budget budget-cli report
+
+copy: bin
+	cp -n budget budget-cli report $(TARGET_PATH)
+
+install: bin copy create_db
+	mkdir -p $(TARGET_PATH)/db
+	cp budget.db $(TARGET_PATH)/db
+
+uninstall:
+	rm -f $(TARGET_PATH)/budget
+	rm -f $(TARGET_PATH)/budget-cli
+	rm -f $(TARGET_PATH)/report
+
+uninstall-purge: uninstall
+	rm -rf $(TARGET_PATH)/db
 
 budget: budget-cli budget.c
-	$(CC) budget.c $(OPTS) -lncurses -o ../budget
+	$(CC) budget.c $(OPTS) -lncurses -o budget
 				
 budget-cli: db.o utils.o user.o category.o user_utils.o category_utils.o \
 				string_verifier.o help.o product.o product_utils.o \
 				shop.o shop_utils.o expense.o expense_utils.o \
 				budget-cli.c 
-	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o ../budget-cli $(OPTS)
+	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)
@@ -46,7 +64,7 @@ expense_utils.o: expense_utils.c expense_utils.h
 	$(CC) -c expense_utils.c -o expense_utils.o $(OPTS)
 
 report: report.c db.o expense_utils.o expense.o utils.o
-	$(CC) string_verifier.o help.o utils.o expense_utils.o db.o expense.o report.c -o ../report $(OPTS)
+	$(CC) string_verifier.o help.o utils.o expense_utils.o db.o expense.o report.c -o report $(OPTS)
 
 string_verifier.o: string_verifier.c string_verifier.h
 	$(CC) -c string_verifier.c -o string_verifier.o $(OPTS)
@@ -57,8 +75,8 @@ utils.o: utils.c utils.h
 help.o: help.c
 	$(CC) -c help.c -o help.o $(OPTS)
 
-create_db: ../db.sql
-	sqlite3 ../db/budget.db < ../db.sql
+create_db: db.sql
+	sqlite3 budget.db < db.sql
 
 clean:
-	rm -f *.o ../budget-cli ../budget ../report
+	rm -rf *.o budget-cli budget report budget.db
