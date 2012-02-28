@@ -26,8 +26,8 @@ int main(int argc, char *argv[]) {
 	char *c[] = {argv[1],argv[2], argv[3]};
 	int exp_count = get_expenses_count();
 
-	puts("======== get_exp_from ==========");
-	printf("zainicjowane z %d elementami\n", exp_count);
+	//puts("======== get_exp_from ==========");
+	//printf("zainicjowane z %d elementami\n", exp_count);
 	Expense **e = calloc(exp_count, sizeof(Expense));
 	get_exp_from(c, e);
 	int counter = 0;
@@ -36,9 +36,9 @@ int main(int argc, char *argv[]) {
 		counter++;
 	}
 
-	puts("======== print_monthly_report =======");
+	printf("======== Raport miesięczny z %s-%s dla %d zakupów =======", month, year, counter);
 	int row_count = count_monthly_categories(month, year);
-	printf("zainicjowane z %d elementami\n", row_count);
+	//printf("zainicjowane z %d elementami\n", row_count);
 	Row **rows;
 	rows = calloc(row_count, sizeof(Row));
 	fetch_monthly_report(month, year, rows);
