@@ -81,7 +81,6 @@ int get_users_count() {
 	const char *tail;
 	int error = 0;
 	int row_count = 0;
-	int counter = 0;
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
@@ -110,7 +109,6 @@ int get_all_users(User *list[]) {
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
-	int row_count = 0;
 	int counter = 0;
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
@@ -131,8 +129,8 @@ int get_all_users(User *list[]) {
 		u->nick = malloc(sizeof (char));
 		u->password = malloc(sizeof (char));
 		u->id = sqlite3_column_int(res, 0);
-		strcpy(u->nick, sqlite3_column_text(res, 1));
-		strcpy(u->password, sqlite3_column_text(res, 2));
+		strcpy(u->nick, (char*)sqlite3_column_text(res, 1));
+		strcpy(u->password, (char*)sqlite3_column_text(res, 2));
 		list[counter] = u;
 		counter++;
 	}
@@ -154,8 +152,8 @@ int get_user_by_id(User *p) {
 	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		strcpy(p->nick, sqlite3_column_text(res, 1));
-		strcpy(p->password, sqlite3_column_text(res, 2));
+		strcpy(p->nick, (char*)sqlite3_column_text(res, 1));
+		strcpy(p->password, (char*)sqlite3_column_text(res, 2));
 	}
 	//printf("%s %s\n", p->nick, p->password);
 	sqlite3_finalize(res);
@@ -184,7 +182,7 @@ int get_user_by_login(User *p) {
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		p->id = sqlite3_column_int(res, 0);
-		strcpy(p->password, sqlite3_column_text(res, 2));
+		strcpy(p->password, (char*)sqlite3_column_text(res, 2));
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);

@@ -1,5 +1,7 @@
 #ifndef STRING_VERIFIER_H
 #define STRING_VERIFIER_H
+
+#include <stdbool.h>
 bool is_add_string(char *s);
 bool is_update_string(char *s);
 bool is_delete_string(char *s);
@@ -11,5 +13,7 @@ bool is_get_by_id_string(char *s);
 bool is_get_by_login_string(char *s);
 bool is_help_for_user_module(char *s);
 bool is_help_for_category_module(char *s);
+bool is_help_for_expense_module(char *s);
+bool is_help_for_shop_module(char *s);
 bool is_help_string(char *s);
 #endif

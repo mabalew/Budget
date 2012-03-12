@@ -15,6 +15,6 @@ int get_user_by_login(User *p);
 int add_user(User *p);
 int del_user(User *p);
 int update_user(User *old_user, User *new_user);
-int get_user_count();
+int get_users_count();
 
 #endif

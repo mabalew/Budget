@@ -132,9 +132,9 @@ int get_all_products(Product *list[]) {
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		list[counter] = malloc(sizeof(Product));
-		list[counter]->name = malloc((strlen(sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
+		list[counter]->name = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
 		list[counter]->id = sqlite3_column_int(res, 0);
-		strcpy(list[counter]->name, sqlite3_column_text(res, 1));
+		strcpy(list[counter]->name, (char*)sqlite3_column_text(res, 1));
 		list[counter]->category_id = sqlite3_column_int(res, 2);
 		counter++;
 	}
@@ -149,7 +149,6 @@ int get_products_in_category(int category_id, Product *list[]) {
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
-	int row_count = 0;
 	int counter = 0;
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
@@ -166,9 +165,9 @@ int get_products_in_category(int category_id, Product *list[]) {
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		list[counter] = malloc(sizeof (Product));
-		list[counter]->name = malloc((strlen(sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
+		list[counter]->name = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
 		list[counter]->id = sqlite3_column_int(res, 0);
-		strcpy(list[counter]->name, sqlite3_column_text(res, 1));
+		list[counter]->name = (char*)sqlite3_column_text(res, 1);
 		list[counter]->category_id = sqlite3_column_int(res, 2);
 		counter++;
 	}
@@ -190,7 +189,7 @@ int get_product_by_id(Product *p) {
 	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		strcpy(p->name, sqlite3_column_text(res, 1));
+		p->name = (char*)sqlite3_column_text(res, 1);
 		p->category_id = sqlite3_column_int(res, 2);
 	}
 	sqlite3_finalize(res);

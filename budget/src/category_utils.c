@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "string_verifier.h"
+#include "help.h"
 #include "category.h"
 #include "category_utils.h"
 
@@ -85,4 +87,5 @@ int manage_category(int argc, char *argv[]) {
 	} else {
 		__show_common_help();
 	}
+	return -1;
 }

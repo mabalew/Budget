@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sqlite3.h>
+#include "help.h"
+#include "string_verifier.h"
 #include "category.h"
 #include "product.h"
 #include "product_utils.h"
@@ -131,7 +133,7 @@ int manage_product(int argc, char *argv[]) {
 	} else if (is_list_string(argv[2])) {
 		return __list_products();
 	} else if (is_help_string(argv[2])) {
-		return __show_help_for_product_module();
+		__show_help_for_product_module();
 	} else if (is_add_to_category_string(argv[2])) {
 		return __add_to_category(argc, argv);
 	} else if (is_list_products_in_category_string(argv[2])) {

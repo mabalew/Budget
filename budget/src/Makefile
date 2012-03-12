@@ -1,13 +1,14 @@
 CC=gcc
-OPTS=-lsqlite3 -g3 -O0
+OPTS=-lsqlite3 -g3 -O0 -Wall 
+GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
 TARGET_PATH=..
 
 all: bin
 
-bin: budget budget-cli report
+bin: budget budget-cli budget-gui report
 
 copy: bin
-	cp -n budget budget-cli report $(TARGET_PATH)
+	cp -n budget budget-cli report budget-gui $(TARGET_PATH)
 
 install: bin copy create_db
 	mkdir -p $(TARGET_PATH)/db
@@ -16,6 +17,7 @@ install: bin copy create_db
 uninstall:
 	rm -f $(TARGET_PATH)/budget
 	rm -f $(TARGET_PATH)/budget-cli
+	rm -f $(TARGET_PATH)/budget-gui
 	rm -f $(TARGET_PATH)/report
 
 uninstall-purge: uninstall
@@ -29,6 +31,9 @@ budget-cli: db.o utils.o user.o category.o user_utils.o category_utils.o \
 				shop.o shop_utils.o expense.o expense_utils.o \
 				budget-cli.c 
 	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
+
+budget-gui: budget main.c
+	$(CC) main.c $(GTK_OPTS) -o budget-gui
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)
@@ -79,4 +84,4 @@ create_db: db.sql
 	sqlite3 budget.db < db.sql
 
 clean:
-	rm -rf *.o budget-cli budget report budget.db
+	rm -rf *.o budget-cli budget-gui budget report budget.db

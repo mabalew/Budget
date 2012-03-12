@@ -62,7 +62,6 @@ int get_categories_count() {
 	const char *tail;
 	int error = 0;
 	int row_count = 0;
-	int counter = 0;
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
 		puts("Can't open database");
@@ -89,7 +88,6 @@ int get_all_categories(Category *list[]) {
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
-	int row_count = 0;
 	int counter = 0;
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
@@ -106,9 +104,9 @@ int get_all_categories(Category *list[]) {
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		list[counter] = malloc(sizeof (Category));
-		list[counter]->name = malloc((strlen(sqlite3_column_text(res, 1)) * sizeof (char)) + 1);
+		list[counter]->name = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof (char)) + 1);
 		list[counter]->id = sqlite3_column_int(res, 0);
-		strcpy(list[counter]->name, sqlite3_column_text(res, 1));
+		strcpy(list[counter]->name, (char*)sqlite3_column_text(res, 1));
 		counter++;
 	}
 	sqlite3_finalize(res);
@@ -128,8 +126,8 @@ int get_category_by_id(Category *c) {
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		c->name = malloc((strlen(sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
-		strcpy(c->name, sqlite3_column_text(res, 1));
+		c->name = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
+		strcpy(c->name, (char*)sqlite3_column_text(res, 1));
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);

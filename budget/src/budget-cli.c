@@ -1,6 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "product.h"
+#include "product_utils.h"
+#include "expense.h"
+#include "expense_utils.h"
 #include "user.h"
 #include "user_utils.h"
 #include "category.h"

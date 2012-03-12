@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "string_verifier.h"
+#include "help.h"
 #include "shop.h"
 #include "shop_utils.h"
 #include "utils.h"

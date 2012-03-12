@@ -9,7 +9,7 @@
 
 typedef struct report_row {
 	char *category;
-	double *value;
+	double value;
 } Row;
 
 void get_exp_from(char *argv[], Expense *list[]);
@@ -17,13 +17,16 @@ void get_monthly_expenses(char *argv[], Row **rows);
 void fetch_monthly_report(char *month, char *year, Row **rows);
 void print_monthly_report(Row **rows, int row_count);
 bool is_two_digit_number(int number);
+int count_monthly_categories(char *month, char *year);
+void free_expense_list2(Expense **e, int count);
+void free_rows_list(Row **rows, int count);
 
 int main(int argc, char *argv[]) {
-	char *year = malloc(sizeof(char));
+	char *year = malloc(5 * sizeof(char));
 	strcpy(year, argv[1]);
-	char *month = malloc(sizeof(char));
+	char *month = malloc(3 * sizeof(char));
 	strcpy(month, argv[2]);
-	char *c[] = {argv[1],argv[2], argv[3]};
+	char *c[] = {argv[1], argv[2], argv[3]};
 	int exp_count = get_expenses_count();
 
 	//puts("======== get_exp_from ==========");
@@ -44,7 +47,32 @@ int main(int argc, char *argv[]) {
 	fetch_monthly_report(month, year, rows);
 	print_monthly_report(rows, row_count);
 
+	free(year);
+	free(month);
+	free_expense_list2(e, exp_count);
+	free(e);
+	free_rows_list(rows, row_count);
+	free(rows);
 	return 0;
+}
+
+void free_rows_list(Row **rows, int count) {
+	int i = 0;
+	for (i = 0; i < count; i++) {
+		free(rows[i]->category);
+		free(rows[i]);
+	}
+}
+
+void free_expense_list2(Expense **e, int count) {
+	int i = 0;
+	for (i = 0; i < count; i++) {
+		free(e[i]->exp_date);
+		free(e[i]->category);
+		free(e[i]->product);
+		free(e[i]->shop);
+		free(e[i]);
+	}
 }
 
 void print_monthly_report(Row **rows, int row_count) {
@@ -54,8 +82,8 @@ void print_monthly_report(Row **rows, int row_count) {
 	printf("\n");
 	puts("------------------+------------------------");
 	for (counter = 0; counter < row_count; counter++) {
-		printf("%17s | %.2f\n", rows[counter]->category, *(rows[counter]->value));
-		total += *(rows[counter]->value);
+		printf("%17s | %.2f\n", rows[counter]->category, rows[counter]->value);
+		total += rows[counter]->value;
 	}
 	puts("------------------+------------------------");
 	printf(" Całkowity koszt: %.2f\n", total);
@@ -85,23 +113,24 @@ void get_monthly_expenses(char *argv[], Row **rows) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("select category_name, sum(price) from v_expenses where exp_date >= '%s-%s-01' and exp_date <= '%s-%s-31' group by category_name", argv[0], argv[1], argv[0], argv[1]);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		Row *r = malloc(sizeof(Row));
-		r->category = malloc(sizeof(char));
-		r->value = malloc(sizeof(double));
-		strcpy(r->category, sqlite3_column_text(res, 0));
-		*(r->value) = sqlite3_column_double(res, 1);
-		rows[counter] = r;
+		rows[counter] = malloc(sizeof(Row));
+		rows[counter]->category = malloc(sizeof(char) * strlen((char*)sqlite3_column_text(res, 0)) + 1);
+		strcpy(rows[counter]->category, (char*)sqlite3_column_text(res, 0));
+		rows[counter]->value = sqlite3_column_double(res, 1);
 		counter++;
 	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
 		exit(error);
 	}
-
 }
 
 int count_monthly_categories(char *month, char *year) {
@@ -113,22 +142,25 @@ int count_monthly_categories(char *month, char *year) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("select count(*) from (select category_name from v_expenses where exp_date >= '%s-%s-01' and exp_date <= '%s-%s-31' group by category_name)", year, month, year, month);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		counter = sqlite3_column_int(res, 0);
 	}
 
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+
 	if (error != 0) {
 		printf("ERROR: %d\n", error);
 		exit(error);
 	}
-
 	return counter;
 }
 
 void get_exp_from(char *argv[], Expense **list) {
-	char *date = malloc(sizeof(char));
+	char *date = malloc(sizeof(char) * (strlen(argv[0]) + strlen(argv[1]) + strlen(argv[2])) + 3);
 
 	char *year = argv[0];
 	char *month= argv[1];
@@ -138,18 +170,21 @@ void get_exp_from(char *argv[], Expense **list) {
 		char *tmp = malloc(sizeof(char));
 		sprintf(tmp, "%s%s", "0", month);
 		month = tmp;
+		free(tmp);
 	}
 	if (strlen(day) == 1 && !is_two_digit_number(atoi(day))) {
 		char *tmp = malloc(sizeof(char));
 		sprintf(tmp, "%s%s", "0", day);
 		day = tmp;
+		free(tmp);
 	}
 
 	sprintf(date, "%s-%s-%s", year, month, day);
 
 	Expense *e = malloc(sizeof(Expense));
-	e->exp_date = malloc(sizeof(char));
 	e->exp_date = date;
 
 	get_expenses_from(e, list);
+	free(date);
+	free(e);
 }

@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include "help.h"
+#include "string_verifier.h"
+#include "help.h"
 #include "expense.h"
 #include "expense_utils.h"
 #include "utils.h"
@@ -104,4 +106,5 @@ int manage_expense(int argc, char *argv[]) {
 	} else {
 		__show_common_help();
 	}
+	return 0;
 }

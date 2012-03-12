@@ -33,6 +33,7 @@ int del_expense(Expense *e) {
 		printf("ERROR: %d\n", error);
 	}
 	sqlite3_close(conn);
+	sqlite3_free(sql);
 	return error;
 }
 
@@ -64,7 +65,7 @@ int get_expenses_count() {
 		exit(0);
 	}
 	char *sql = "SELECT COUNT(*) FROM v_expenses";
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
@@ -117,7 +118,7 @@ int get_all_expenses(Expense *list[]) {
 	}
 
 	char *sql = "SELECT * FROM v_expenses";
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
 		printf("ERROR: %d\n", error);
 		return error;
@@ -131,6 +132,7 @@ int get_all_expenses(Expense *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
+	sqlite3_free(sql);
 	return error;
 }
 
@@ -143,7 +145,7 @@ int get_expense_by_id(Expense *e) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("SELECT * FROM v_expenses WHERE id=%u", e->id);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		Expense *e = malloc(sizeof(Expense));
@@ -168,15 +170,17 @@ int get_expenses_from(Expense *e, Expense *list[]) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("SELECT * FROM v_expenses WHERE exp_date >= '%s'", e->exp_date);
-	error = sqlite3_prepare_v2(conn, sql, 1000, &res, &tail);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
-		Expense *e = malloc(sizeof(Expense));
-		//init_expense(e, res);
-		fill_expense(res, e);
-		list[counter] = e;
+		list[counter] = malloc(sizeof(Expense));
+		fill_expense(res, list[counter]);
 		counter++;
 	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
 
 	if (error != 0) {
 		printf("ERROR: %d\n", error);

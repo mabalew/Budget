@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "help.h"
+#include "string_verifier.h"
 #include "user.h"
 #include "user_utils.h"
 
@@ -52,7 +54,6 @@ void __login(char *argv[]) {
 void __list_users() {
 	int users_count = get_users_count();
 	int counter = 0;
-	char *object_string = malloc(sizeof(char));
 	User *list[users_count];
 	puts("==================================");
 	printf("Znaleziono %d\n", users_count);
