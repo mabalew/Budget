@@ -2,6 +2,7 @@ db
 src/*
 budget
 budget-cli
+budget-gui
 report
 valgrind.log
 *anjuta*
