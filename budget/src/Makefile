@@ -32,8 +32,8 @@ budget-cli: db.o utils.o user.o category.o user_utils.o category_utils.o \
 				budget-cli.c 
 	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
 
-budget-gui: budget main.c
-	$(CC) main.c $(GTK_OPTS) -o budget-gui
+budget-gui: utils.o help.o product.o product_utils.o category.o category_utils.o budget main.c 
+	$(CC) db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o main.c -o budget-gui $(GTK_OPTS) $(OPTS)
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)

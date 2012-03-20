@@ -53,6 +53,63 @@ int update_expense(Expense *old_expense, Expense *new_expense) {
 	return error;
 }
 
+// Funkcja pomocnicza dla funkcji max, min i avg.
+double _find_price(int which, int product_id, Expense *e) {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0;
+	double result = 0.0;
+	error = sqlite3_open(DB_FILE, &conn);
+
+	if (error) {
+		puts("Can't open database");
+		exit(0);
+	}
+
+	char *sql = malloc(100);
+
+	switch (which) {
+		case 0:
+			sprintf(sql, "SELECT min(price) FROM v_expenses WHERE product_id=%d", product_id);
+			break;
+		case 1:
+			sprintf(sql, "SELECT avg(price) FROM v_expenses WHERE product_id=%d", product_id);
+			break;
+		case 2:
+			sprintf(sql, "SELECT max(price) FROM v_expenses WHERE product_id=%d", product_id);
+			break;
+	}
+
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	if (error != SQLITE_OK) {
+		printf("ERROR: %d\n", error);
+		exit(error);
+	}
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		result = sqlite3_column_double(res, 0);
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+
+	return result;
+}
+
+double find_min_price(int product_id, Expense *e) {
+	return _find_price(0, product_id, e);
+}
+
+double find_max_price(int product_id, Expense *e) {
+	return _find_price(1, product_id, e);
+}
+
+double find_avg_price(int product_id) {
+	return _find_price(2, product_id, NULL);
+}
+
 int get_expenses_count() {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
@@ -105,6 +162,34 @@ void fill_expense(sqlite3_stmt *res, Expense *e) {
 	strcpy(e->shop, (char*)sqlite3_column_text(res, 10));
 }
 
+int get_expense(int expense_id, Expense *e) {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0;
+	error = sqlite3_open(DB_FILE, &conn);
+	if (error) {
+		puts("Can't open database");
+		exit(0);
+	}
+
+	char *sql = malloc(100);
+	sprintf(sql, "SELECT * FROM v_expenses WHERE [exp id]=%d", expense_id);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+	if (error != SQLITE_OK) {
+		printf("ERROR: %d\n", error);
+		return error;
+	}
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		fill_expense(res, e);
+	}
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+	return error;
+}
+
 int get_all_expenses(Expense *list[]) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
@@ -126,7 +211,6 @@ int get_all_expenses(Expense *list[]) {
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
 		list[counter] = malloc(sizeof (Expense));
-		//init_expense(list[counter], res);
 		fill_expense(res, list[counter]);
 		counter++;
 	}

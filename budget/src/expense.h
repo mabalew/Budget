@@ -22,6 +22,7 @@ int del_expense(Expense *c);
 int update_expense(Expense *old_expense, Expense *new_expense);
 int get_expenses_count();
 int get_expenses_from(Expense *e, Expense *list[]);
+int get_expense(int expense_id, Expense *e);
 int get_all_expenses(Expense *list[]);
 int get_expense_by_id(Expense *c);
 int get_expense_by_name(Expense *c);

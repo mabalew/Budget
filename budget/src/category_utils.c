@@ -6,7 +6,6 @@
 #include "category.h"
 #include "category_utils.h"
 
-void free_category_list(Category *list[], int size);
 void verify_number_of_parameters(int argc, int should_be);
 
 int __update_category(int argc, char *argv[]) {
