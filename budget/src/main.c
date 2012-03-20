@@ -5,6 +5,7 @@
 #include "product.h"
 #include "category_utils.h"
 #include "category.h"
+#include "expense.h"
 
 GtkBuilder *builder;
 GtkWidget  *status_label;
@@ -82,11 +83,18 @@ void on_product_new_add_button_clicked(GtkObject *object, gpointer data) {
 
 void on_treeview_products_changed(GtkWidget *widget, gpointer window) {
 	GtkTreeModel *model;
+	int product_id;
 	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_products_selection), &model, &iter)) {
+		gtk_tree_model_get(model, &iter, 0, &product_id, -1);
 		gtk_tree_model_get(model, &iter, 1, &old_product_name, -1);
 		gtk_tree_model_get(model, &iter, 2, &old_category_name, -1);
 		gtk_entry_set_text(GTK_ENTRY(entry), old_product_name);
 		select_combo(product_new_categories_cb, old_category_name);
+		double max_price, min_price, avg_price;
+		max_price = find_max_price(product_id, NULL);
+		min_price = find_min_price(product_id, NULL);
+		avg_price = find_avg_price(product_id);
+		g_print("max: %.2f, min: %.2f, avg: %.2f", max_price, min_price, avg_price);
 	}
 }
 

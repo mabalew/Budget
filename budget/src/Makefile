@@ -3,12 +3,12 @@ OPTS=-lsqlite3 -g3 -O0 -Wall
 GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
 TARGET_PATH=..
 
-all: bin
+all: copy
 
 bin: budget budget-cli budget-gui report
 
 copy: bin
-	cp -n budget budget-cli report budget-gui $(TARGET_PATH)
+	cp -n budget budget-cli report budget.glade budget-gui $(TARGET_PATH)
 
 install: bin copy create_db
 	mkdir -p $(TARGET_PATH)/db
@@ -33,7 +33,7 @@ budget-cli: db.o utils.o user.o category.o user_utils.o category_utils.o \
 	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
 
 budget-gui: utils.o help.o product.o product_utils.o category.o category_utils.o budget main.c 
-	$(CC) db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o main.c -o budget-gui $(GTK_OPTS) $(OPTS)
+	$(CC) db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o expense.c main.c -o budget-gui $(GTK_OPTS) $(OPTS)
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)

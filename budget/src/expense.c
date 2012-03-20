@@ -54,7 +54,7 @@ int update_expense(Expense *old_expense, Expense *new_expense) {
 }
 
 // Funkcja pomocnicza dla funkcji max, min i avg.
-double _find_price(int which, int product_id, Expense *e) {
+double _find_price(enum price which, int product_id, Expense *e) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -70,13 +70,13 @@ double _find_price(int which, int product_id, Expense *e) {
 	char *sql = malloc(100);
 
 	switch (which) {
-		case 0:
+		case MIN:
 			sprintf(sql, "SELECT min(price) FROM v_expenses WHERE product_id=%d", product_id);
 			break;
-		case 1:
+		case AVG:
 			sprintf(sql, "SELECT avg(price) FROM v_expenses WHERE product_id=%d", product_id);
 			break;
-		case 2:
+		case MAX:
 			sprintf(sql, "SELECT max(price) FROM v_expenses WHERE product_id=%d", product_id);
 			break;
 	}
@@ -99,15 +99,15 @@ double _find_price(int which, int product_id, Expense *e) {
 }
 
 double find_min_price(int product_id, Expense *e) {
-	return _find_price(0, product_id, e);
+	return _find_price(MIN, product_id, e);
 }
 
 double find_max_price(int product_id, Expense *e) {
-	return _find_price(1, product_id, e);
+	return _find_price(MAX, product_id, e);
 }
 
 double find_avg_price(int product_id) {
-	return _find_price(2, product_id, NULL);
+	return _find_price(AVG, product_id, NULL);
 }
 
 int get_expenses_count() {

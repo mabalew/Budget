@@ -3,6 +3,12 @@
 
 #include <sqlite3.h>
 
+enum price {
+	MIN = 0,
+	AVG,
+	MAX
+};
+
 typedef struct expense {
 	int id;
 	char *exp_date;
@@ -27,5 +33,7 @@ int get_all_expenses(Expense *list[]);
 int get_expense_by_id(Expense *c);
 int get_expense_by_name(Expense *c);
 void init_expense(Expense *e, sqlite3_stmt *res);
-
+double find_min_price(int product_id, Expense *e);
+double find_max_price(int product_id, Expense *e);
+double find_avg_price(int product_id);
 #endif
