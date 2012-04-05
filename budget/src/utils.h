@@ -19,5 +19,6 @@
 #ifndef UTILS_H
 #define UTILS_H
 void verify_number_of_parameters(int argc, int should_be);
+char *replace_str(char *str, char *orig, char *rep);
 
 #endif

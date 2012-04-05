@@ -33,7 +33,7 @@ int get_all_expenses(Expense *list[]);
 int get_expense_by_id(Expense *c);
 int get_expense_by_name(Expense *c);
 void init_expense(Expense *e, sqlite3_stmt *res);
-double find_min_price(int product_id, Expense *e);
-double find_max_price(int product_id, Expense *e);
+Expense **find_min_price(int product_id, double *min_price, int *count);
+Expense **find_max_price(int product_id, double *max_price, int *count);
 double find_avg_price(int product_id);
 #endif

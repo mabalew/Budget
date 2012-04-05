@@ -8,7 +8,8 @@
 #include "expense.h"
 
 GtkBuilder *builder;
-GtkWidget  *status_label;
+GtkLabel  *status_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label;
+GtkButton *min_button, *max_button;
 GtkWidget  *entry;
 GtkComboBox  *product_new_categories_cb;
 GtkListStore *categories_store;
@@ -16,14 +17,22 @@ GtkListStore *products_store;
 GtkTreeView *treeview_products;
 GtkTreeSelection *treeview_products_selection;
 GtkTreeIter iter;
+Expense **max_expenses, **min_expenses;
+int max_expenses_count, min_expenses_count;
+double max_price, min_price, avg_price;
 char *old_product_name;
 char *old_category_name, *new_category_name;
 
+//void on_category_add_button_clicked(GtkWidget *widget, gpointer data);
+//void on_category_update_button_clicked(GtkWidget *widget, gpointer data);
 void print_status(int err_no, int data);
 void fetch_category_list();
 void fetch_product_list();
 void select_combo(GtkComboBox *combo, char *item_text);
 void select_list(GtkTreeView *tree_view, char *item_text);
+void process_max_price();
+void process_min_price();
+void process_avg_price();
 
 void fetch_product_list() {
 	int products_count = get_products_count(0);
@@ -40,8 +49,6 @@ void fetch_product_list() {
 			get_category_by_id(c);
 			gtk_list_store_append(products_store, &iter);
 			gtk_list_store_set(products_store, &iter, 0, list[counter]->id, 1, list[counter]->name, 2, c->name, 3, 0.0, -1);
-			free(c->name);
-			free(c);
 		}
 	}
 
@@ -90,12 +97,95 @@ void on_treeview_products_changed(GtkWidget *widget, gpointer window) {
 		gtk_tree_model_get(model, &iter, 2, &old_category_name, -1);
 		gtk_entry_set_text(GTK_ENTRY(entry), old_product_name);
 		select_combo(product_new_categories_cb, old_category_name);
-		double max_price, min_price, avg_price;
-		max_price = find_max_price(product_id, NULL);
-		min_price = find_min_price(product_id, NULL);
+		max_expenses = find_max_price(product_id, &max_price, &max_expenses_count);
+		min_expenses = find_min_price(product_id, &min_price, &min_expenses_count);
 		avg_price = find_avg_price(product_id);
-		g_print("max: %.2f, min: %.2f, avg: %.2f", max_price, min_price, avg_price);
+		g_print("max: %.2f (count: %d), min: %.2f (count: %d), avg: %.2f\n", max_price, max_expenses_count, min_price, min_expenses_count, avg_price);
+
+		process_max_price();
+		process_min_price();
+		process_avg_price();
+
+		product_id = 0;
+
 	}
+}
+
+void process_min_price() {
+		int i=0, size=0;
+		char *min_char = malloc(2048);
+		char *null = "\0";
+		char *_min_price = malloc(10);
+		sprintf(_min_price, "%.2f", min_price);
+		strcpy(min_char, null);
+		if (min_expenses_count > 0) { // do we have any expenses with the product?
+			for (i=0; i<min_expenses_count; i++) {
+				// getting length of names of all shop with min price to allocate memory
+				size += strlen(min_expenses[i]->shop);
+			}
+			strcat(min_char, "Najtaniej w: ");
+			printf("size %d\n", size);
+			for (i=0; i<min_expenses_count; ++i) {
+				g_print("%s\n", min_expenses[i]->shop);
+				min_char = strcat(min_char, min_expenses[i]->shop);
+				min_char = strcat(min_char, ", ");
+			}
+		}
+		if (min_expenses_count > 0 && strcmp(min_char, "") != 0) {
+			printf("min_char %s\n", min_char);
+			gtk_label_set_markup(GTK_LABEL(shops_min_price_label), min_char);
+			gtk_button_set_label(GTK_BUTTON(min_button), _min_price);
+			gtk_widget_set_sensitive(GTK_WIDGET(min_button), TRUE);
+		} else {
+			gtk_label_set_markup(GTK_LABEL(shops_min_price_label), "-");
+			gtk_button_set_label(GTK_BUTTON(min_button), "-");
+			gtk_widget_set_sensitive(GTK_WIDGET(min_button), FALSE);
+		}
+		free(min_char);
+		min_expenses = NULL;
+		min_expenses_count = 0;
+}
+
+void process_max_price() {
+		int i=0, size=0;
+		char *max_char = malloc(2048);
+		char *null = "\0";
+		char *_max_price = malloc(10);
+		sprintf(_max_price, "%.2f", max_price);
+		strcpy(max_char, null);
+		if (max_expenses_count > 0) { // do we have any expenses with the product?
+			for (i=0; i<max_expenses_count; i++) {
+				// getting length of names of all shop with max price to allocate memory
+				size += strlen(max_expenses[i]->shop);
+			}
+			printf("size %d\n", size);
+			strcat(max_char, "Najdrożej w: ");
+			for (i=0; i<max_expenses_count; ++i) {
+				g_print("%s\n", max_expenses[i]->shop);
+				max_char = strcat(max_char, max_expenses[i]->shop);
+				max_char = strcat(max_char, ", ");
+			}
+		}
+		if (max_expenses_count > 0 && strcmp(max_char, "") != 0) {
+			printf("max_char %s\n", max_char);
+			gtk_label_set_markup(GTK_LABEL(shops_max_price_label), max_char);
+			gtk_button_set_label(GTK_BUTTON(max_button), _max_price);
+			gtk_widget_set_sensitive(GTK_WIDGET(max_button), TRUE);
+		} else {
+			gtk_label_set_markup(GTK_LABEL(shops_max_price_label), "-");
+			gtk_button_set_label(GTK_BUTTON(max_button), "-");
+			gtk_widget_set_sensitive(GTK_WIDGET(max_button), FALSE);
+		}
+		free(max_char);
+		max_expenses = NULL;
+		max_expenses_count = 0;
+}
+
+void process_avg_price() {
+	char *_avg_price = malloc(100);
+	sprintf(_avg_price, "%.2f", avg_price);
+	gtk_label_set_markup(GTK_LABEL(avg_value_label), _avg_price);
+	free(_avg_price);
 }
 
 void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {
@@ -121,6 +211,11 @@ void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {
 	select_list(treeview_products, (char*)gtk_entry_get_text(GTK_ENTRY(entry)));
 	gtk_entry_set_text(GTK_ENTRY(entry), "");
 	select_combo(product_new_categories_cb, "-");
+	gtk_label_set_markup(GTK_LABEL(shops_max_price_label), "");
+	gtk_label_set_markup(GTK_LABEL(shops_min_price_label), "");
+	gtk_label_set_markup(GTK_LABEL(avg_value_label), "");
+	gtk_button_set_label(GTK_BUTTON(max_button), "");
+	gtk_button_set_label(GTK_BUTTON(min_button), "");
 }
 
 //
@@ -150,16 +245,11 @@ void select_list(GtkTreeView *tree_view, char *item_text) {
 	if (gtk_tree_model_get_iter_first(model, &iter)) {
 		do {
 			gtk_tree_model_get(model, &iter, 1, &current_text, -1);
-			g_print("Porownuje: %s i %s: ", item_text, current_text);
 			end_search = g_strcmp0(current_text, item_text) == 0;
-			g_print(end_search ? "OK\n" : "NO\n");
 		} while (!end_search && gtk_tree_model_iter_next(model, &iter));
 	}
 	if (end_search == TRUE) {
-		g_print("Znalazlem %s\n", item_text);
 		gtk_tree_selection_select_iter(treeview_products_selection, &iter);
-	} else {
-		g_print("Nie znalazlem %s\n", item_text);
 	}
 	g_free(current_text);
 }
@@ -201,12 +291,17 @@ int main(int argc, char *argv[]) {
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
 	gtk_builder_connect_signals(builder, NULL);
 	entry = GTK_WIDGET(gtk_builder_get_object(builder, "product_new_name_entry"));
-	status_label = GTK_WIDGET(gtk_builder_get_object(builder, "status_label"));
+	status_label = GTK_LABEL(gtk_builder_get_object(builder, "status_label"));
+	shops_max_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_max_price_label"));
+	shops_min_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_min_price_label"));
+	avg_value_label = GTK_LABEL(gtk_builder_get_object(builder, "avg_value_label"));
+	min_button = GTK_BUTTON(gtk_builder_get_object(builder, "min_button"));
+	max_button = GTK_BUTTON(gtk_builder_get_object (builder, "max_button"));
 	product_new_categories_cb = GTK_COMBO_BOX(gtk_builder_get_object(builder, "product_new_category_combobox"));
 	categories_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "categories_store"));
 	products_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "products_store"));
 	treeview_products = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_products"));
-	treeview_products_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_products)); //GTK_TREE_SELECTION(gtk_builder_get_object(builder, "treeview_products_selection"));
+	treeview_products_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_products));
 	g_signal_connect(treeview_products_selection, "changed", G_CALLBACK(on_treeview_products_changed), NULL);
 
 	init_components();
@@ -255,4 +350,13 @@ void print_status(int err_no, int data) {
 	}
 	gtk_label_set_markup(GTK_LABEL(status_label), msg);
 }
+
+// CATEGORIES
+/*void on_category_add_button_clicked(GtkWidget *widget, gpointer data) {
+	g_print("Adding");
+}
+
+void on_category_update_button_clicked(GtkWidget *widget, gpointer data) {
+	g_print("Updating");
+}*/
 
