@@ -9,7 +9,20 @@
 #include "product_utils.h"
 #include "utils.h"
 
+int __update_product(int argc, char *argv[]);
+int __add_product(int argc, char *argv[]);
+int __del_product(int argc, char *argv[]);
+int __list_products_in_category(int argc, char *argv[]);
 void free_product_list(Product *list[], int size);
+
+int _update_product(char *old_name, char *new_name, int category_id) {
+	char *cat_id = malloc(20);
+	sprintf(cat_id, "%d", category_id);
+	char *args[6] = {"","","",old_name, new_name, cat_id};
+	int ret = __update_product(6, args);
+	free(cat_id);
+	return ret;
+}
 
 int __update_product(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 6);
@@ -19,10 +32,20 @@ int __update_product(int argc, char *argv[]) {
 	po->name = argv[3];
 	pn->name = argv[4];
 	pn->category_id = atoi(argv[5]);
+	printf("po->name: %s\n", po->name);
+	printf("pn->name: %s\n", pn->name);
+	printf("pn->category_id: %d\n", pn->category_id);
 	int status = update_product(po, pn);
 	free(po);
 	free(pn);
 	return status;
+}
+
+int _add_product(char *name, int category_id) {
+	char *cat_id = malloc(20);
+	sprintf(cat_id, "%d", category_id);
+	char *args[5] = {"","","",name,cat_id};
+	return __add_product(5, args);
 }
 
 int __add_product(int argc, char *argv[]) {
@@ -34,6 +57,11 @@ int __add_product(int argc, char *argv[]) {
 	int status = add_product(p);
 	free(p);
 	return status;
+}
+
+int _del_product(char *name) {
+	char *args[4] = {"","","",name};
+	return __del_product(4, args);
 }
 
 int __del_product(int argc, char *argv[]) {

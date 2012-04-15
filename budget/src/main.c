@@ -10,12 +10,12 @@
 GtkBuilder *builder;
 GtkLabel  *status_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label;
 GtkButton *min_button, *max_button;
-GtkWidget  *entry;
+GtkWidget  *product_new_name_entry, *category_new_name_entry;
 GtkComboBox  *product_new_categories_cb;
 GtkListStore *categories_store;
 GtkListStore *products_store;
-GtkTreeView *treeview_products;
-GtkTreeSelection *treeview_products_selection;
+GtkTreeView *treeview_products, *treeview_categories;
+GtkTreeSelection *treeview_products_selection, *treeview_categories_selection;
 GtkTreeIter iter;
 Expense **max_expenses, **min_expenses;
 int max_expenses_count, min_expenses_count;
@@ -23,9 +23,11 @@ double max_price, min_price, avg_price;
 char *old_product_name;
 char *old_category_name, *new_category_name;
 
-//void on_category_add_button_clicked(GtkWidget *widget, gpointer data);
-//void on_category_update_button_clicked(GtkWidget *widget, gpointer data);
-void print_status(int err_no, int data);
+void on_category_add_button_clicked(GtkWidget *widget, gpointer data);
+void on_category_update_button_clicked(GtkWidget *widget, gpointer data);
+void on_category_delete_button_clicked(GtkWidget *widget, gpointer data);
+void on_treeview_categories_changed(GtkWidget *widget, gpointer window);
+void print_status(int msg_no, int data);
 void fetch_category_list();
 void fetch_product_list();
 void select_combo(GtkComboBox *combo, char *item_text);
@@ -60,6 +62,30 @@ void fetch_product_list() {
 	free_product_list(list, products_count);
 }
 
+void fetch_category_list() {
+	int categories_count = get_categories_count();
+	char *msg = malloc(125);
+	print_status(6, categories_count);
+	int counter = 0;
+	Category *list[categories_count];
+	int status = get_all_categories(list);
+	gtk_list_store_clear(categories_store);
+	if (categories_count != 0 && NULL != list[0]) {
+		for (counter = 0; counter < categories_count; counter++) {
+			gtk_list_store_append(categories_store, &iter);
+			gtk_list_store_set(categories_store, &iter, 0, list[counter]->id, 1, list[counter]->name, -1);
+		}
+	}
+	if (status == 0) {
+		print_status(7, categories_count);
+	} else {
+		print_status(7, -1);
+	}
+	free_category_list(list, categories_count);
+	free(msg);
+}
+
+
 //
 // Events
 //
@@ -69,21 +95,17 @@ void on_window_destroy(GtkObject *object, gpointer data) {
 
 void on_product_new_add_button_clicked(GtkObject *object, gpointer data) {
 	char *nazwa;
-	nazwa = g_strdup(gtk_entry_get_text(GTK_ENTRY(entry)));
+	nazwa = g_strdup(gtk_entry_get_text(GTK_ENTRY(product_new_name_entry)));
 	if (strlen((char*)nazwa) == 0) {
 		print_status(1, -1);
 	} else {
 		if (gtk_combo_box_get_active_iter(product_new_categories_cb, &iter)) {
 			GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(product_new_categories_cb));
 			int category_id;
-			char *category = malloc(10);
 			gtk_tree_model_get(model, &iter, 0, &category_id, -1);
-			sprintf(category, "%d", category_id);
-			char *args[] = {NULL, NULL, NULL, nazwa, category};
-			__add_product(5, args);
+			_add_product(nazwa, category_id);
 			fetch_product_list();
 			select_combo(product_new_categories_cb, "-");
-			free(category);
 		}
 	}
 }
@@ -95,7 +117,7 @@ void on_treeview_products_changed(GtkWidget *widget, gpointer window) {
 		gtk_tree_model_get(model, &iter, 0, &product_id, -1);
 		gtk_tree_model_get(model, &iter, 1, &old_product_name, -1);
 		gtk_tree_model_get(model, &iter, 2, &old_category_name, -1);
-		gtk_entry_set_text(GTK_ENTRY(entry), old_product_name);
+		gtk_entry_set_text(GTK_ENTRY(product_new_name_entry), old_product_name);
 		select_combo(product_new_categories_cb, old_category_name);
 		max_expenses = find_max_price(product_id, &max_price, &max_expenses_count);
 		min_expenses = find_min_price(product_id, &min_price, &min_expenses_count);
@@ -191,25 +213,25 @@ void process_avg_price() {
 void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {
 	char *msg = malloc(125);
 	int id = 0;
+	int category_id;
 	if ((id = gtk_combo_box_get_active(GTK_COMBO_BOX(product_new_categories_cb))) != -1) {
-		char *cat_id = malloc(5);
-		sprintf(cat_id, "%d", id);
-		// creating args for products.__update_product function
-		char *args[] = {NULL, NULL, NULL, old_product_name, (char*)gtk_entry_get_text(GTK_ENTRY(entry)), cat_id };
-		int status = __update_product(6, args);
+		gtk_combo_box_get_active_iter(product_new_categories_cb, &iter);
+		GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(product_new_categories_cb));
+		gtk_tree_model_get(model, &iter, 0, &category_id, -1);
+		char *new_product_name = (char*)gtk_entry_get_text(GTK_ENTRY(product_new_name_entry));
+		int status = _update_product(old_product_name, new_product_name, category_id);
 		if (status == 0) {
 			print_status(4, status);
 		} else {
 			print_status(4, status);
 		}
-		free(cat_id);
 	} else {
 		print_status(5, 0);
 	}
 	free(msg);
 	fetch_product_list();
-	select_list(treeview_products, (char*)gtk_entry_get_text(GTK_ENTRY(entry)));
-	gtk_entry_set_text(GTK_ENTRY(entry), "");
+	select_list(treeview_products, (char*)gtk_entry_get_text(GTK_ENTRY(product_new_name_entry)));
+	gtk_entry_set_text(GTK_ENTRY(product_new_name_entry), "");
 	select_combo(product_new_categories_cb, "-");
 	gtk_label_set_markup(GTK_LABEL(shops_max_price_label), "");
 	gtk_label_set_markup(GTK_LABEL(shops_min_price_label), "");
@@ -254,28 +276,6 @@ void select_list(GtkTreeView *tree_view, char *item_text) {
 	g_free(current_text);
 }
 
-void fetch_category_list() {
-	int categories_count = get_categories_count();
-	char *msg = malloc(125);
-	print_status(6, categories_count);
-	int counter = 0;
-	Category *list[categories_count];
-	int status = get_all_categories(list);
-	if (categories_count != 0 && NULL != list[0]) {
-		for (counter = 0; counter < categories_count; counter++) {
-			gtk_list_store_append(categories_store, &iter);
-			gtk_list_store_set(categories_store, &iter, 0, list[counter]->id, 1, list[counter]->name, -1);
-		}
-	}
-	if (status == 0) {
-		print_status(7, categories_count);
-	} else {
-		print_status(7, -1);
-	}
-	free_category_list(list, categories_count);
-	free(msg);
-}
-
 void init_components() {
 	fetch_category_list();
 	fetch_product_list();
@@ -290,7 +290,8 @@ int main(int argc, char *argv[]) {
 	gtk_builder_add_from_file(builder, "budget.glade", NULL);
 	window = GTK_WIDGET(gtk_builder_get_object(builder, "window"));
 	gtk_builder_connect_signals(builder, NULL);
-	entry = GTK_WIDGET(gtk_builder_get_object(builder, "product_new_name_entry"));
+	product_new_name_entry = GTK_WIDGET(gtk_builder_get_object(builder, "product_new_name_entry"));
+	category_new_name_entry = GTK_WIDGET(gtk_builder_get_object(builder, "category_new_name_entry"));
 	status_label = GTK_LABEL(gtk_builder_get_object(builder, "status_label"));
 	shops_max_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_max_price_label"));
 	shops_min_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_min_price_label"));
@@ -304,6 +305,11 @@ int main(int argc, char *argv[]) {
 	treeview_products_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_products));
 	g_signal_connect(treeview_products_selection, "changed", G_CALLBACK(on_treeview_products_changed), NULL);
 
+
+	treeview_categories = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_categories"));
+	treeview_categories_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_categories));
+	g_signal_connect(treeview_categories_selection, "changed", G_CALLBACK(on_treeview_categories_changed), NULL);
+
 	init_components();
 	g_object_unref(G_OBJECT(GTK_BUILDER(builder)));
 
@@ -315,10 +321,10 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void print_status(int err_no, int data) {
+void print_status(int msg_no, int data) {
 	char *msg = malloc(125);
 
-	switch (err_no) {
+	switch (msg_no) {
 		case 1: msg = "<span foreground='red'><b>Wpisz nazwę</b></span>";
 						break;
 		case 2:	msg = "<span foreground='blue'><b>Pobieranie %d produktów</b></span>";
@@ -345,6 +351,20 @@ void print_status(int err_no, int data) {
 							sprintf(msg, "<span foreground='red'><b>NIE pobrano listy kategorii</b></span>");
 						}
 						break;
+		case 8: if (data == 0) {
+							sprintf(msg, "<span foreground='blue'><b>Usunięto kategorię %s</b></span>", old_category_name);
+						} else {
+							sprintf(msg, "<span foreground='red'><b>Kategoria jest w użyciu</b></span>");
+						}
+						break;
+		case 9: if (data == 0) {
+							sprintf(msg, "<span foreground='blue'><b>Dodano kategorię %s</b></span>", new_category_name);
+						} else if (data == 1) {
+							sprintf(msg, "<span foreground='red'><b>Nie dodano %s</b></span>", new_category_name);
+						}
+						break;
+		case 10: sprintf(msg, "<span foreground='red'><b>Podaj nazwę kategorii</b></span>");
+						 break;
 		default:
 						msg = "";
 	}
@@ -352,11 +372,55 @@ void print_status(int err_no, int data) {
 }
 
 // CATEGORIES
-/*void on_category_add_button_clicked(GtkWidget *widget, gpointer data) {
-	g_print("Adding");
+void on_category_add_button_clicked(GtkWidget *widget, gpointer data) {
+	new_category_name = (char*)gtk_entry_get_text(GTK_ENTRY(category_new_name_entry));
+	printf("Adding %s\n", new_category_name);
+	printf(":: %d\n", (int)strlen(gtk_entry_get_text(GTK_ENTRY(category_new_name_entry))));
+	if (strlen(gtk_entry_get_text(GTK_ENTRY(category_new_name_entry))) > 0) {
+		int status = _add_category((char*)gtk_entry_get_text(GTK_ENTRY(category_new_name_entry)));
+		if (status == 0) {
+			fetch_category_list();
+			gtk_entry_set_text(GTK_ENTRY(category_new_name_entry), "");
+			print_status(9, 0);
+		} else {
+			print_status(9, 1);
+		}
+	} else {
+		print_status(10, 0);
+	}
 }
 
 void on_category_update_button_clicked(GtkWidget *widget, gpointer data) {
-	g_print("Updating");
-}*/
+	new_category_name = (char*)gtk_entry_get_text(GTK_ENTRY(category_new_name_entry));
+	printf("Updating %s\n", new_category_name);
+	if (strlen(new_category_name) > 0) {
+		_update_category(old_category_name, new_category_name);
+		fetch_category_list();
+		gtk_entry_set_text(GTK_ENTRY(category_new_name_entry), "");
+	}
+}
 
+void on_category_delete_button_clicked(GtkWidget *widget, gpointer data) {
+	printf("Removing %s\n", gtk_entry_get_text(GTK_ENTRY(category_new_name_entry)));
+	if (strlen(gtk_entry_get_text(GTK_ENTRY(category_new_name_entry))) > 0) {
+		int status = _del_category((char*)gtk_entry_get_text(GTK_ENTRY(category_new_name_entry)));
+		if (status == 0) {
+			fetch_category_list();
+			gtk_entry_set_text(GTK_ENTRY(category_new_name_entry), "");
+			print_status(8, 0);
+		} else {
+			print_status(8, 1);
+		}
+	}
+}
+
+void on_treeview_categories_changed(GtkWidget *widget, gpointer window) {
+	GtkTreeModel *model;
+	int category_id;
+	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_categories_selection), &model, &iter)) {
+		gtk_tree_model_get(model, &iter, 0, &category_id, -1);
+		gtk_tree_model_get(model, &iter, 1, &old_category_name, -1);
+		gtk_entry_set_text(GTK_ENTRY(category_new_name_entry), old_category_name);
+		category_id = 0;
+	}
+}

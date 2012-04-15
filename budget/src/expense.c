@@ -3,54 +3,85 @@
 #include <sqlite3.h>
 #include <string.h>
 #include "expense.h"
+#include "log.h"
 #include "db.h"
 #include "utils.h"
 
 int add_expense(Expense *e) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	int error = 0;
+	sprintf(msg, "add_expense: adding [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+	_log(INFO, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO expenses(exp_date, amount, product_id, shop_id, price) VALUES('%q', %.2f, %d, %d, %.2f)", e->exp_date, e->amount, e->product_id, e->shop_id, e->price);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n",error);
+		sprintf(msg, "add_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 	sqlite3_close(conn);
 	sqlite3_free(sql);
+	sprintf(msg, "add_expense: added [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+	_log(INFO, msg);
+	free(msg);
 	return error;
 }
 
 int del_expense(Expense *e) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	int error = 0;
+	sprintf(msg, "del_expense: deleting [id: %d]", e->id);
+	_log(INFO, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; DELETE FROM expenses WHERE id=%d", e->id);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
+		sprintf(msg, "del_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 	sqlite3_close(conn);
 	sqlite3_free(sql);
+	sprintf(msg, "del_expense: deleted [%d]", e->id);
+	_log(INFO, msg);
+	free(msg);
 	return error;
 }
 
 int update_expense(Expense *old_expense, Expense *new_expense) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	int error = 0;
+	strcpy(msg, "update_expense: updating");
+	_log(INFO, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE expenses SET exp_date='%s', product_id=%d, shop_id=%d, price=%.2f, amount=%.2f WHERE id=%d", new_expense->exp_date, new_expense->product_id, new_expense->shop_id, new_expense->price, new_expense->amount, old_expense->id);
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
+		sprintf(msg, "update_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 	sqlite3_close(conn);
 	sqlite3_free(sql);
+	strcpy(msg, "update_expense: updated");
+	_log(INFO, msg);
+	free(msg);
 	return error;
 }
 
@@ -74,6 +105,7 @@ void fill_expense(sqlite3_stmt *res, Expense *e) {
 
 // Funkcja pomocnicza dla funkcji max, min i avg.
 Expense **_find_price(enum price which, int product_id, double *price, int *count) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -85,8 +117,11 @@ Expense **_find_price(enum price which, int product_id, double *price, int *coun
 	*count = 0;
 
 	if (error) {
-		puts("Can't open database");
-		exit(0);
+		sprintf(msg, "_find_price: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		exit(error);
 	}
 
 	char *sql = malloc(200);
@@ -108,7 +143,11 @@ Expense **_find_price(enum price which, int product_id, double *price, int *coun
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
+		sprintf(msg, "_find_price: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		exit(error);
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -121,14 +160,17 @@ Expense **_find_price(enum price which, int product_id, double *price, int *coun
 	char *_price = malloc(10);
 	sprintf(_price, "%.2f", *price);
 	_price = replace_str(_price, ",", ".");
-	printf("(expense.c) _price: %s\n", _price);
-	printf("(expense.c) product_id: %d\n", product_id);
+	sprintf(msg, "_find_price: _price: [%s]", _price);
+	_log(TRACE, msg);
+	sprintf(msg, "_find_price: product_id [%d]", product_id);
+	_log(TRACE, msg);
 
 	error = sqlite3_open(DB_FILE, &conn);
 
 	if (*price != 0.0 && which != AVG) {
 		sprintf(sql1, "SELECT count(*) FROM (SELECT * FROM v_expenses WHERE product_id=%d AND unit_price=%s GROUP BY shop_name) sub;", product_id, _price);
-		printf("(expense.c) sql1: %s\n",sql1);
+		sprintf(msg, "_find_price: sql1 [%s]",sql1);
+		_log(TRACE, msg);
 		error = sqlite3_prepare_v2(conn, sql1, -1, &res, &tail);
 		if (error == SQLITE_OK) {
 			while (sqlite3_step(res) == SQLITE_ROW) {
@@ -136,25 +178,28 @@ Expense **_find_price(enum price which, int product_id, double *price, int *coun
 			}
 			sqlite3_finalize(res);
 			sqlite3_close(conn);
-			printf("(expense.c) count: %d\n", *count);
+			sprintf(msg, "_find_price: count [%d]", *count);
+			_log(TRACE, msg);
 			error = sqlite3_open(DB_FILE, &conn);
 			res = NULL;
 			tail = NULL;
 			if (*count > 0) {
 				expenses = calloc(*count, sizeof(Expense));
 				sprintf(sql2, "SELECT * FROM v_expenses WHERE product_id=%d AND unit_price=%s GROUP BY shop_name;", product_id, _price);
-				printf("(expense.c) sql2: %s\n", sql2);
+				sprintf(msg, "_find_price: sql2 [%s]", sql2);
+				_log(TRACE, msg);
 				error = sqlite3_prepare_v2(conn, sql2, -1, &res, &tail);
 				if (error != SQLITE_OK) {
-					printf("ERROR: %d\n", error);
-					printf("ERROR: %s\n", sqlite3_errmsg(conn));
+					sprintf(msg, "_find_price: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+					_log(ERROR, msg);
+					free(msg);
+					sqlite3_close(conn);
+					exit(error);
 				}
 				int i = 0;
 				while(sqlite3_step(res) == SQLITE_ROW) {
-					printf("(expense.c) i: %d\n", i);
 					expenses[i] = malloc(sizeof(Expense));
 					fill_expense(res, expenses[i]);
-					printf(">>> shop: %s\n", expenses[i]->shop);
 					i++;
 				}
 			}
@@ -184,23 +229,31 @@ double find_avg_price(int product_id) {
 }
 
 int get_expenses_count() {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
 	int row_count = 0;
+	sprintf(msg, "get_expenses_count: counting");
+	_log(INFO, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
-		puts("Can't open database");
-		exit(0);
+		sprintf(msg, "get_expenses_count: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 	char *sql = "SELECT COUNT(*) FROM v_expenses";
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
-		printf("ERROR: %s\n", sqlite3_errmsg(conn));
-		exit(error);
+		sprintf(msg, "get_expenses_count: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -208,33 +261,37 @@ int get_expenses_count() {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
+	sprintf(msg, "get_expenses_count: result [%d]", row_count);
+	_log(INFO, msg);
+	free(msg);
 	return row_count;
 }
 
-/* /void init_expense(Expense *e, sqlite3_stmt *res) {
-	e->exp_date = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
-	e->category = malloc((strlen((char*)sqlite3_column_text(res, 3)) * sizeof(char)) + 1);
-	e->product = malloc((strlen((char*)sqlite3_column_text(res, 5)) * sizeof(char)) + 1);
-	e->shop = malloc((strlen((char*)sqlite3_column_text(res, 10)) * sizeof(char)) + 1);
-}*/
-
 int get_expense(int expense_id, Expense *e) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
+	sprintf(msg, "get_expense: getting [%d]", expense_id);
+	_log(DEBUG, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
-		puts("Can't open database");
-		exit(0);
+		sprintf(msg, "get_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
 
 	char *sql = malloc(100);
 	sprintf(sql, "SELECT * FROM v_expenses WHERE [exp id]=%d", expense_id);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
-		printf("ERROR: %s\n", sqlite3_errmsg(conn));
+		sprintf(msg, "get_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
 		return error;
 	}
 
@@ -248,22 +305,30 @@ int get_expense(int expense_id, Expense *e) {
 }
 
 int get_all_expenses(Expense *list[]) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
 	int counter = 0;
+	sprintf(msg, "get_all_expenses: getting all");
+	_log(DEBUG, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	if (error) {
-		puts("Can't open database");
-		exit(0);
+		sprintf(msg, "get_all_expenses: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		sqlite3_close(conn);
+		free(msg);
+		return error;
 	}
 
 	char *sql = "SELECT * FROM v_expenses";
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
-		printf("ERROR: %s\n", sqlite3_errmsg(conn));
+		sprintf(msg, "get_all_expenses: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		sqlite3_close(conn);
+		free(msg);
 		return error;
 	}
 
@@ -274,15 +339,20 @@ int get_all_expenses(Expense *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	//sqlite3_free(sql);
+	sprintf(msg, "get_all_expenses: got %d categories", counter);
+	_log(DEBUG, msg);
+	free(msg);
 	return error;
 }
 
 int get_expense_by_id(Expense *e) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
 	int error = 0;
+	sprintf(msg, "get_expense_by_id: getting");
+	_log(DEBUG, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
@@ -298,13 +368,20 @@ int get_expense_by_id(Expense *e) {
 	sqlite3_free(sql);
 
 	if (error != 0) {
-		printf("ERROR: %d\n", error);
-		printf("ERROR: %s\n", sqlite3_errmsg(conn));
+		sprintf(msg, "get_expense_by_id: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		sqlite3_close(conn);
+		free(msg);
+		return error;
 	}
+	sprintf(msg, "get_expense_by_id: got expense [%d]", e->id);
+	_log(DEBUG, msg);
+	free(msg);
 	return error;
 }
 
 int get_expenses_from(Expense *e, Expense *list[]) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -326,8 +403,14 @@ int get_expenses_from(Expense *e, Expense *list[]) {
 	sqlite3_free(sql);
 
 	if (error != 0) {
-		printf("ERROR: %d\n", error);
-		printf("ERROR: %s\n", sqlite3_errmsg(conn));
+		sprintf(msg, "get_expenses_from: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
 	}
+	sprintf(msg, "get_expenses_from: got it");
+	_log(DEBUG, msg);
+	free(msg);
 	return error;
 }

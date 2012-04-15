@@ -7,6 +7,14 @@
 #include "category_utils.h"
 
 void verify_number_of_parameters(int argc, int should_be);
+int __update_category(int argc, char *argv[]);
+int __add_category(int argc, char *argv[]);
+int __del_category(int argc, char *argv[]);
+
+int _update_category(char *old_name, char *new_name) {
+	char *args[5] = {"","","",old_name,new_name};
+	return __update_category(5, args);
+}
 
 int __update_category(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 5);
@@ -22,6 +30,11 @@ int __update_category(int argc, char *argv[]) {
 	return status;
 }
 
+int _add_category(char *name) {
+	char *args[4] = {"","","",name};
+	return __add_category(4, args);
+}
+
 int __add_category(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 	Category *c = (Category*)malloc(sizeof c);
@@ -29,6 +42,11 @@ int __add_category(int argc, char *argv[]) {
 	int status = add_category(c);
 	free(c);
 	return status;
+}
+
+int _del_category(char *name) {
+	char *args[4] = {"","","",name};
+	return __del_category(4, args);
 }
 
 int __del_category(int argc, char *argv[]) {

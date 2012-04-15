@@ -26,14 +26,14 @@ uninstall-purge: uninstall
 budget: budget-cli budget.c
 	$(CC) budget.c $(OPTS) -lncurses -o budget
 				
-budget-cli: db.o utils.o user.o category.o user_utils.o category_utils.o \
+budget-cli: config.o db.o log.o utils.o user.o category.o user_utils.o category_utils.o \
 				string_verifier.o help.o product.o product_utils.o \
 				shop.o shop_utils.o expense.o expense_utils.o \
 				budget-cli.c 
-	$(CC) db.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
+	$(CC) config.o db.o log.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o budget-cli.c -o budget-cli $(OPTS)
 
-budget-gui: utils.o help.o product.o product_utils.o category.o category_utils.o budget main.c 
-	$(CC) db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o expense.c main.c -o budget-gui $(GTK_OPTS) $(OPTS)
+budget-gui: config.o log.o utils.o help.o product.o product_utils.o category.o category_utils.o budget main.c 
+	$(CC) config.o log.o db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o expense.c main.c -o budget-gui $(GTK_OPTS) $(OPTS)
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)
@@ -62,20 +62,26 @@ shop_utils.o: shop.o shop_utils.c shop_utils.h
 db.o: utils.o db.c db.h
 	$(CC) -c db.c -o db.o $(OPTS)
 
-expense.o: expense.c expense.h db.o utils.o
+expense.o: db.o expense.c expense.h db.o utils.o
 	$(CC) -c expense.c -o expense.o $(OPTS)
 
 expense_utils.o: expense_utils.c expense_utils.h
 	$(CC) -c expense_utils.c -o expense_utils.o $(OPTS)
 
-report: report.c db.o expense_utils.o expense.o utils.o
-	$(CC) string_verifier.o help.o utils.o expense_utils.o db.o expense.o report.c -o report $(OPTS)
+report: report.c config.o log.o db.o expense_utils.o expense.o utils.o
+	$(CC) config.o log.o string_verifier.o help.o utils.o expense_utils.o db.o expense.o report.c -o report $(OPTS)
 
 string_verifier.o: string_verifier.c string_verifier.h
 	$(CC) -c string_verifier.c -o string_verifier.o $(OPTS)
 
 utils.o: utils.c utils.h
 	$(CC) -c utils.c -o utils.o $(OPTS)
+
+config.o: config.c
+	$(CC) -c config.c -o config.o $(OPTS)
+
+log.o: log.c db.o config.o
+	$(CC) config.o db.o -c log.c -o log.o $(OPTS)
 
 help.o: help.c
 	$(CC) -c help.c -o help.o $(OPTS)
