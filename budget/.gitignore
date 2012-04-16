@@ -2,7 +2,6 @@ db
 budget
 budget-cli
 budget-gui
-budget.glade
 report
 valgrind.log
 *anjuta*
