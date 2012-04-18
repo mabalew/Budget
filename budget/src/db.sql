@@ -1,6 +1,6 @@
 CREATE TABLE categories(
 	id INTEGER primary key autoincrement,
-	category_name VARCHAR2(100) NOT NULL
+	category_name VARCHAR2(100) NOT NULL UNIQUE
 );
 CREATE TABLE products(
 	id INTEGER primary key autoincrement,
