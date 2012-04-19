@@ -31,7 +31,7 @@ void _log(Level level, char *msg) {
 	}
 }
 
-int get_logs_count() {
+int get_logs_count(Level level) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -42,7 +42,8 @@ int get_logs_count() {
 		puts("Can't open database");
 		return error;
 	}
-	char *sql = "SELECT COUNT(*) FROM logs";
+	char *sql = malloc(255);
+	sprintf(sql, "SELECT COUNT(*) FROM logs WHERE level=%d", level);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {

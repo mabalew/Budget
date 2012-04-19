@@ -7,8 +7,6 @@
 #include "shop_utils.h"
 #include "utils.h"
 
-void free_shop_list(Shop *list[], int size);
-
 void __show_help_for_shop_module() {
 	puts("\ndostępne komendy:");
 	puts("\tadd lub a [nazwa]");
@@ -29,6 +27,11 @@ int __update_shop(int argc, char *argv[]) {
 	return status;
 }
 
+int _update_shop(char *old_name, char *new_name) {
+	char *args[5] = {"","","",old_name,new_name};
+	return __update_shop(5, args);
+}
+
 int __add_shop(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 	Shop *s = (Shop*)malloc(sizeof s);
@@ -38,6 +41,11 @@ int __add_shop(int argc, char *argv[]) {
 	return status;
 }
 
+int _add_shop(char *name) {
+	char *args[4] = {"","","",name};
+	return __add_shop(4, args);
+}
+
 int __del_shop(int argc, char *argv[]) {
 	verify_number_of_parameters(argc, 4);
 	Shop *s = malloc(sizeof (Shop));
@@ -45,6 +53,11 @@ int __del_shop(int argc, char *argv[]) {
 	int status = del_shop(s);
 	free(s);
 	return status;
+}
+
+int _del_shop(char *name) {
+	char *args[4] = {"","","",name};
+	return __del_shop(4, args);
 }
 
 int __list_shops() {
