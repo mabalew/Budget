@@ -1,5 +1,7 @@
+src/*.o
 db
 budget
+budget.glade
 budget-cli
 budget-gui
 report
@@ -7,3 +9,4 @@ valgrind.log
 *anjuta*
 *.bak
 TODO.tasks
+tests
