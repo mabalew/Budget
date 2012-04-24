@@ -8,7 +8,7 @@ all: install
 bin: budget budget-cli budget-gui report.o
 
 copy: bin
-	cp budget budget-cli report.o budget.glade budget-gui $(TARGET_PATH)
+	cp budget budget-cli budget.glade budget-gui $(TARGET_PATH)
 
 install: bin copy
 	mkdir -p $(TARGET_PATH)/db
