@@ -44,5 +44,6 @@ int get_config(char *param_name, char *value) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
+	sqlite3_free(sql);
 	return error;
 }

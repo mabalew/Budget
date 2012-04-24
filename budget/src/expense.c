@@ -228,7 +228,7 @@ double find_avg_price(int product_id) {
 	return avg_price;
 }
 
-int get_expenses_count() {
+int get_expenses_count(char *year, char *month) {
 	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
@@ -245,7 +245,7 @@ int get_expenses_count() {
 		sqlite3_close(conn);
 		return error;
 	}
-	char *sql = "SELECT COUNT(*) FROM v_expenses";
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM (SELECT * FROM v_expenses WHERE exp_date >= '%s-%s-01' AND exp_date <= '%s-%s-31') sub;", year, month, year, month);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
@@ -380,7 +380,7 @@ int get_expense_by_id(Expense *e) {
 	return error;
 }
 
-int get_expenses_from(Expense *e, Expense *list[]) {
+int get_expenses(char *year, char *month, Expense *list[]) {
 	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
@@ -389,7 +389,7 @@ int get_expenses_from(Expense *e, Expense *list[]) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("SELECT * FROM v_expenses WHERE exp_date >= '%s'", e->exp_date);
+	char *sql = sqlite3_mprintf("SELECT * FROM v_expenses WHERE exp_date >= '%s-%s-01' AND exp_date <= '%s-%s-31'", year, month, year, month);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {

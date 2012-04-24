@@ -16,6 +16,7 @@ void _log(Level level, char *msg) {
 		get_config("LOGGING_LEVEL", LOGGING_LEVEL);
 		printf("LOGGING_LEVEL: %s\n", LOGGING_LEVEL);
 		configured_level = atoi(LOGGING_LEVEL);
+		free(LOGGING_LEVEL);
 	}
 	if (level >= configured_level) {
 		error = sqlite3_open(LOG_DB_FILE, &conn);

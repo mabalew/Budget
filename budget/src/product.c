@@ -108,7 +108,6 @@ int get_products_count(int category_id) {
 	int row_count = 0;
 	char *msg = malloc(255);
 
-
 	error = sqlite3_open(DB_FILE, &conn);
 
 	if (error) {
@@ -217,14 +216,14 @@ int get_products_in_category(int category_id, Product *list[]) {
 		list[counter] = malloc(sizeof (Product));
 		list[counter]->name = malloc((strlen((char*)sqlite3_column_text(res, 1)) * sizeof(char)) + 1);
 		list[counter]->id = sqlite3_column_int(res, 0);
-		list[counter]->name = (char*)sqlite3_column_text(res, 1);
+		strcpy(list[counter]->name, (char*)sqlite3_column_text(res, 1));
 		list[counter]->category_id = sqlite3_column_int(res, 2);
 		counter++;
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
 	sqlite3_free(sql);
-	sprintf(msg, "get_products_in_category: get [%d] products from category [%d]", counter, category_id);
+	sprintf(msg, "get_products_in_category: got [%d] products from category [%d]", counter, category_id);
 	_log(DEBUG, msg);
 	free(msg);
 	return error;

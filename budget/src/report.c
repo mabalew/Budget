@@ -6,31 +6,22 @@
 #include "expense.h"
 #include "expense_utils.h"
 #include "db.h"
-
-typedef struct report_row {
-	char *category;
-	double value;
-} Row;
+#include "report.h"
 
 void get_exp_from(char *argv[], Expense *list[]);
-void get_monthly_expenses(char *argv[], Row **rows);
-void fetch_monthly_report(char *month, char *year, Row **rows);
+void get_monthly_expenses(char *year, char *month, Row **rows);
 void print_monthly_report(Row **rows, int row_count);
 bool is_two_digit_number(int number);
-int count_monthly_categories(char *month, char *year);
 void free_expense_list2(Expense **e, int count);
-void free_rows_list(Row **rows, int count);
 
-int main(int argc, char *argv[]) {
+/*int _main(int argc, char *argv[]) {
 	char *year = malloc(5 * sizeof(char));
 	strcpy(year, argv[1]);
 	char *month = malloc(3 * sizeof(char));
 	strcpy(month, argv[2]);
 	char *c[] = {argv[1], argv[2], argv[3]};
-	int exp_count = get_expenses_count();
+	int exp_count = get_expenses_count(year, month);
 
-	//puts("======== get_exp_from ==========");
-	//printf("zainicjowane z %d elementami\n", exp_count);
 	Expense **e = calloc(exp_count, sizeof(Expense));
 	get_exp_from(c, e);
 	int counter = 0;
@@ -41,11 +32,13 @@ int main(int argc, char *argv[]) {
 
 	printf("======== Raport miesięczny z %s-%s dla %d zakupów =======", month, year, counter);
 	int row_count = count_monthly_categories(month, year);
-	//printf("zainicjowane z %d elementami\n", row_count);
 	Row **rows;
 	rows = calloc(row_count, sizeof(Row));
 	fetch_monthly_report(month, year, rows);
 	print_monthly_report(rows, row_count);
+	int row_count2 = count_yearly_categories(year);
+	Row **rows2 = calloc(row_count2, sizeof(Row));
+	fetch_yearly_report(year, rows2);
 
 	free(year);
 	free(month);
@@ -53,8 +46,10 @@ int main(int argc, char *argv[]) {
 	free(e);
 	free_rows_list(rows, row_count);
 	free(rows);
+	free_rows_list(rows2, row_count2);
+	free(rows2);
 	return 0;
-}
+}*/
 
 void free_rows_list(Row **rows, int count) {
 	int i = 0;
@@ -95,16 +90,15 @@ bool is_two_digit_number(int number) {
 	return ((number >= 10 && number < 100) || (number <= -10 && number > -100));
 }
 
-void fetch_monthly_report(char *month, char *year, Row **rows) {
+void fetch_monthly_report(char *year, char *month, Row **rows) {
 	if (atoi(month) < 1 || atoi(month) > 12) {
 		printf("ERROR: niepoprawny miesiąc. Miesiąc musi zawierać się w przedziale od 1 do 12.");
 		exit(0);
 	}
-	char *date[] = {year, month, "01"};
-	get_monthly_expenses(date, rows);
+	get_monthly_expenses(year, month, rows);
 }
 
-void get_monthly_expenses(char *argv[], Row **rows) {
+void get_monthly_expenses(char *year, char *month, Row **rows) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -112,7 +106,7 @@ void get_monthly_expenses(char *argv[], Row **rows) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("select category_name, sum(price) from v_expenses where exp_date >= '%s-%s-01' and exp_date <= '%s-%s-31' group by category_name", argv[0], argv[1], argv[0], argv[1]);
+	char *sql = sqlite3_mprintf("select category_name, sum(price) as price from v_expenses where exp_date >= '%s-%s-01' and exp_date <= '%s-%s-31' group by category_name order by price desc", year, month, year, month);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -133,7 +127,7 @@ void get_monthly_expenses(char *argv[], Row **rows) {
 	}
 }
 
-int count_monthly_categories(char *month, char *year) {
+int count_monthly_categories(char *year, char *month) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -142,6 +136,62 @@ int count_monthly_categories(char *month, char *year) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("select count(*) from (select category_name from v_expenses where exp_date >= '%s-%s-01' and exp_date <= '%s-%s-31' group by category_name)", year, month, year, month);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		counter = sqlite3_column_int(res, 0);
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+
+	if (error != 0) {
+		printf("ERROR: %d\n", error);
+		exit(error);
+	}
+	return counter;
+}
+
+void fetch_yearly_report(char *year, Row **rows) {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0, counter = 0;
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("select category_name, sum(price) as price from v_expenses where exp_date >= '%s-01-01' and exp_date <= '%s-12-31' group by category_name order by price desc", year, year);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		rows[counter] = malloc(sizeof(Row));
+		rows[counter]->category = malloc(sizeof(char) * strlen((char*)sqlite3_column_text(res, 0)) + 1);
+		strcpy(rows[counter]->category, (char*)sqlite3_column_text(res, 0));
+		rows[counter]->value = sqlite3_column_double(res, 1);
+		printf("[YR] Category: %s - %f\n", rows[counter]->category, rows[counter]->value);
+		counter++;
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+
+	if (error != 0) {
+		printf("ERROR: %d\n", error);
+		exit(error);
+	}
+}
+
+int count_yearly_categories(char *year) {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0, counter = 0;
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("select count(*) from (select category_name from v_expenses where exp_date >= '%s-01-01' and exp_date <= '%s-12-31' group by category_name)", year, year);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -184,7 +234,7 @@ void get_exp_from(char *argv[], Expense **list) {
 	Expense *e = malloc(sizeof(Expense));
 	e->exp_date = date;
 
-	get_expenses_from(e, list);
+	get_expenses(year, month, list);
 	free(date);
 	free(e);
 }

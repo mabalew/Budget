@@ -53,8 +53,8 @@ int __del_expense(int argc, char *argv[]) {
 	return status;
 }
 
-int __list_expenses() {
-	int expenses_count = get_expenses_count();
+int __list_expenses(char *year, char *month) {
+	int expenses_count = get_expenses_count(year, month);
 	int counter = 0;
 	Expense *list[expenses_count];
 	puts("==================================");
@@ -100,7 +100,7 @@ int manage_expense(int argc, char *argv[]) {
 	} else if (is_delete_string(argv[2])) {
 		return __del_expense(argc, argv);
 	} else if (is_list_string(argv[2])) {
-		return __list_expenses();
+		return __list_expenses(argv[3], argv[4]);
 	} else if (is_help_for_expense_module(argv[2])) {
 		__show_help_for_expense_module();
 	} else {

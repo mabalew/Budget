@@ -8,19 +8,20 @@
 #include "shop.h"
 #include "shop_utils.h"
 #include "log.h"
+#include "report.h"
 #include "expense.h"
 
 GtkBuilder *builder;
-GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label;
+GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;
 GtkButton *min_button, *max_button;
 GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;
-GtkComboBox  *product_new_categories_cb;
-GtkListStore *products_store, *categories_store, *shops_store;
-GtkTreeView *treeview_products, *treeview_categories, *treeview_shops;
-GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection;
+GtkComboBox  *product_new_categories_cb, *exp_categories_combo;
+GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store;
+GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp;
+GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection;
 GtkTreeIter iter;
 Expense **max_expenses, **min_expenses;
-int max_expenses_count, min_expenses_count;
+int max_expenses_count, min_expenses_count, selected_category_id=0;
 double max_price, min_price, avg_price;
 char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;
 
@@ -40,11 +41,22 @@ void process_min_price();
 void process_avg_price();
 
 void fetch_product_list() {
-	int products_count = get_products_count(0);
+	int products_count = get_products_count(selected_category_id);
 	print_status(2, -1);
 	int counter = 0;
+	int status = 0;
 	Product *list[products_count];
-	int status = get_all_products(list);
+	if (selected_category_id == 0) {
+		status = get_all_products(list);
+	} else {
+		status = get_products_in_category(selected_category_id, list);
+	}
+		for (counter = 0; counter < products_count; counter++) {
+			Category *c = malloc(sizeof(Category));
+			c->id = 0;
+			c->id = list[counter]->category_id;
+			get_category_by_id(c);
+		}
 	gtk_list_store_clear(products_store);
 	if (products_count != 0) {
 		for (counter = 0; counter < products_count; counter++) {
@@ -62,7 +74,10 @@ void fetch_product_list() {
 	} else {
 		print_status(3, -1);
 	}
-	free_product_list(list, products_count);
+	if (products_count > 0 && list != NULL) {
+		free_product_list(list, products_count);
+	}
+	products_count = 0;
 }
 
 void fetch_category_list() {
@@ -111,6 +126,55 @@ void fetch_shop_list() {
 	free(msg);
 }
 
+void fetch_monthly_exp_list() {
+	int rows_count = count_monthly_categories("2012", "02");
+	char *msg = malloc(125);
+	print_status(6, rows_count);
+	int counter = 0;
+	float sum = 0.0;
+	Row *list[rows_count];
+	fetch_monthly_report("2012", "02", list);
+	gtk_list_store_clear(monthly_expenses_store);
+	if (rows_count != 0 && NULL != list[0]) {
+		for (counter = 0; counter < rows_count; counter++) {
+			gtk_list_store_append(monthly_expenses_store, &iter);
+			gtk_list_store_set(monthly_expenses_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
+			sum += list[counter]->value;
+		}
+	}
+	char *c_sum = malloc(30);
+	sprintf(c_sum, "<b>Razem: %.2f</b>", sum);
+	gtk_label_set_markup(sum_month_label, c_sum);
+	free(c_sum);
+	free_rows_list(list, rows_count);
+	free(msg);
+}
+
+void fetch_yearly_exp_list() {
+	int rows_count = count_yearly_categories("2012");
+	char *msg = malloc(125);
+	print_status(6, rows_count);
+	int counter = 0;
+	float sum = 0.0;
+	Row *list[rows_count];
+	fetch_yearly_report("2012", list);
+	gtk_list_store_clear(yearly_expenses_store);
+	if (rows_count != 0 && NULL != list[0]) {
+		for (counter = 0; counter < rows_count; counter++) {
+			gtk_list_store_append(yearly_expenses_store, &iter);
+			gtk_list_store_set(yearly_expenses_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
+			sum += list[counter]->value;
+		}
+	}
+	char *c_sum = malloc(30);
+	sprintf(c_sum, "<b>Razem: %.2f</b>", sum);
+	gtk_label_set_markup(sum_year_label, c_sum);
+	free(c_sum);
+	free_rows_list(list, rows_count);
+	free(msg);
+}
+
+
 //
 // Events
 //
@@ -147,7 +211,6 @@ void on_treeview_products_changed(GtkWidget *widget, gpointer window) {
 		max_expenses = find_max_price(product_id, &max_price, &max_expenses_count);
 		min_expenses = find_min_price(product_id, &min_price, &min_expenses_count);
 		avg_price = find_avg_price(product_id);
-		g_print("max: %.2f (count: %d), min: %.2f (count: %d), avg: %.2f\n", max_price, max_expenses_count, min_price, min_expenses_count, avg_price);
 
 		process_max_price();
 		process_min_price();
@@ -301,6 +364,8 @@ void init_components() {
 	fetch_product_list();
 	fetch_category_list();
 	fetch_shop_list();
+	fetch_monthly_exp_list();
+	fetch_yearly_exp_list();
 }
 
 int main(int argc, char *argv[]) {
@@ -338,6 +403,19 @@ int main(int argc, char *argv[]) {
 	treeview_shops = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_shops"));
 	treeview_shops_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_shops));
 	g_signal_connect(treeview_shops_selection, "changed", G_CALLBACK(on_treeview_shops_changed), NULL);
+
+	monthly_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "monthly_expenses_store"));
+	treeview_monthly_exp = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_monthly_exp"));
+	treeview_monthly_exp_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_monthly_exp));
+
+	yearly_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "yearly_expenses_store"));
+	treeview_yearly_exp = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_yearly_exp"));
+	treeview_yearly_exp_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_yearly_exp));
+
+	exp_categories_combo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "exp_categories_combo"));
+
+	sum_month_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_month_label"));
+	sum_year_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_year_label"));
 
 	init_components();
 	g_object_unref(G_OBJECT(GTK_BUILDER(builder)));
@@ -400,6 +478,7 @@ void print_status(int msg_no, int data) {
 							sprintf(msg, "<span foreground='red'><b>NIE pobrano listy sklepów</b></span>");
 							gtk_label_set_markup(GTK_LABEL(err_label), msg);
 						}
+						 break;
 		case 12: if (data == 0) {
 							sprintf(msg, "<span foreground='blue'><b>Usunięto sklep %s</b></span>", old_shop_name);
 						} else {
@@ -414,6 +493,14 @@ void print_status(int msg_no, int data) {
 						break;
 		case 14: sprintf(msg, "<span foreground='red'><b>Podaj nazwę sklepu</b></span>");
 						break;
+		case 15: if (data > -1) {
+							sprintf(msg, "<span foreground='blue'><b>Pobrano %d wydatków miesięcznych</b></span>", data);
+						} else {
+							sprintf(msg, "<span foreground='red'><b>NIE pobrano listy wydatków miesięcznych</b></span>");
+							gtk_label_set_markup(GTK_LABEL(err_label), msg);
+						}
+						 break;
+
 		default:
 						msg = "";
 	}
@@ -518,4 +605,16 @@ void on_treeview_shops_changed(GtkWidget *widget, gpointer data) {
 		gtk_entry_set_text(GTK_ENTRY(shop_new_name_entry), old_shop_name);
 		shop_id = 0;
 	}
+}
+
+// Expenses
+void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {
+		if (gtk_combo_box_get_active_iter(exp_categories_combo, &iter)) {
+			GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_categories_combo));
+			gtk_tree_model_get(model, &iter, 0, &selected_category_id, -1);
+			g_print("Wybrano %d\n", selected_category_id);
+			fetch_product_list();
+ 	}
+	g_print("Nie wybrano\n");
+	fetch_product_list();
 }
