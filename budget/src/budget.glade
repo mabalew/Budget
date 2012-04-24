@@ -530,11 +530,13 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="model">categories_store</property>
+                                                <property name="wrap_width">5</property>
                                                 <signal name="changed" handler="on_exp_categories_combo_changed" swapped="no"/>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="exp_category_id_cell"/>
+                                                  <object class="GtkCellRendererText" id="exp_category_id_cell">
+                                                    <property name="visible">False</property>
+                                                  </object>
                                                   <attributes>
-                                                    <attribute name="visible">0</attribute>
                                                     <attribute name="text">0</attribute>
                                                   </attributes>
                                                 </child>
@@ -600,8 +602,11 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="model">products_store</property>
+                                                <property name="wrap_width">5</property>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="exp_product_id_cell"/>
+                                                  <object class="GtkCellRendererText" id="exp_product_id_cell">
+                                                    <property name="visible">False</property>
+                                                  </object>
                                                   <attributes>
                                                     <attribute name="text">0</attribute>
                                                   </attributes>
@@ -902,11 +907,11 @@
                             <property name="search_column">0</property>
                             <child>
                               <object class="GtkTreeViewColumn" id="Id">
-                                <property name="min_width">0</property>
                                 <property name="max_width">0</property>
-                                <property name="title" translatable="yes">Id</property>
                                 <child>
-                                  <object class="GtkCellRendererText" id="product_id_col_cellrenderer"/>
+                                  <object class="GtkCellRendererText" id="product_id_col_cellrenderer">
+                                    <property name="visible">False</property>
+                                  </object>
                                   <attributes>
                                     <attribute name="text">0</attribute>
                                   </attributes>
@@ -935,11 +940,10 @@
                                 <property name="resizable">True</property>
                                 <property name="spacing">1</property>
                                 <property name="max_width">0</property>
-                                <property name="title" translatable="yes">Cena</property>
-                                <property name="clickable">True</property>
-                                <property name="sort_indicator">True</property>
                                 <child>
-                                  <object class="GtkCellRendererText" id="product_price_col_cellrenderer"/>
+                                  <object class="GtkCellRendererText" id="product_price_col_cellrenderer">
+                                    <property name="visible">False</property>
+                                  </object>
                                   <attributes>
                                     <attribute name="text">3</attribute>
                                   </attributes>
@@ -1090,8 +1094,11 @@
                                                 <property name="visible">True</property>
                                                 <property name="can_focus">False</property>
                                                 <property name="model">categories_store</property>
+                                                <property name="wrap_width">5</property>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="product_new_category_cb_id_cellrenderer"/>
+                                                  <object class="GtkCellRendererText" id="product_new_category_cb_id_cellrenderer">
+                                                    <property name="visible">False</property>
+                                                  </object>
                                                   <attributes>
                                                     <attribute name="text">0</attribute>
                                                   </attributes>
