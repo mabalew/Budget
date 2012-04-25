@@ -15,10 +15,10 @@ GtkBuilder *builder;
 GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;
 GtkButton *min_button, *max_button;
 GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;
-GtkComboBox  *product_new_categories_cb, *exp_categories_combo;
-GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store;
-GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp;
-GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection;
+GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo;
+GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;
+GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;
+GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;
 GtkTreeIter iter;
 Expense **max_expenses, **min_expenses;
 int max_expenses_count, min_expenses_count, selected_category_id=0;
@@ -403,10 +403,16 @@ int main(int argc, char *argv[]) {
 	treeview_shops = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_shops"));
 	treeview_shops_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_shops));
 	g_signal_connect(treeview_shops_selection, "changed", G_CALLBACK(on_treeview_shops_changed), NULL);
+	exp_shops_combo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "exp_shops_combo"));
 
 	monthly_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "monthly_expenses_store"));
 	treeview_monthly_exp = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_monthly_exp"));
 	treeview_monthly_exp_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_monthly_exp));
+
+
+	shopping_list_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "shopping_list_store"));
+	treeview_shopping_list = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_shopping_list"));
+	treeview_shopping_list_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_shopping_list));
 
 	yearly_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "yearly_expenses_store"));
 	treeview_yearly_exp = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_yearly_exp"));
