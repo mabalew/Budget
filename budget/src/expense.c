@@ -33,6 +33,35 @@ int add_expense(Expense *e) {
 	return error;
 }
 
+int add_tmp_expense(Expense *e, signed int *rowid) {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	int error = 0;
+	sprintf(msg, "add_tmp_expense: adding [shop id: %d] [price: %.2f]", e->shop_id, e->price);
+	_log(INFO, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO tmp_expenses(category_id, category, product_id, product, count, amount, price, shop_id, shop) VALUES(%d, '%s', %d, '%s', %d, %.3f, %.2f, %d, '%s')", e->category_id, e->category, e->product_id, e->product, e->count, e->amount, e->price, e->shop_id, e->shop);
+	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	if (error != SQLITE_OK) {
+		sprintf(msg, "add_tmp_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+	*rowid = sqlite3_last_insert_rowid(conn);
+	printf("dodane id: %d\n", *rowid);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+	sprintf(msg, "add_tmp_expense: added [shop id: %d] [price: %.2f]", e->shop_id, e->price);
+	_log(INFO, msg);
+	free(msg);
+	return error;
+}
+
+
 int del_expense(Expense *e) {
 	char *msg = malloc(255);
 	sqlite3 *conn;
@@ -80,6 +109,32 @@ int update_expense(Expense *old_expense, Expense *new_expense) {
 	sqlite3_close(conn);
 	sqlite3_free(sql);
 	strcpy(msg, "update_expense: updated");
+	_log(INFO, msg);
+	free(msg);
+	return error;
+}
+
+int update_tmp_count(Expense *e) {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	int error = 0;
+	strcpy(msg, "update_count: updating");
+	_log(INFO, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; UPDATE tmp_expenses SET count=%d WHERE id=%d", e->count, e->id);
+	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	if (error != SQLITE_OK) {
+		sprintf(msg, "update_tmp_count: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+	strcpy(msg, "update_tmp_count: updated");
 	_log(INFO, msg);
 	free(msg);
 	return error;

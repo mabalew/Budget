@@ -19,11 +19,13 @@ typedef struct expense {
 	int shop_id;
 	char *shop;
 	float unit_price;
+	int count;
 	float amount;
 	float price;
 } Expense;
 
 int add_expense(Expense *c);
+int add_tmp_expense(Expense *e, signed int *rowid);
 int del_expense(Expense *c);
 int update_expense(Expense *old_expense, Expense *new_expense);
 int get_expenses_count(char *year, char *month);
