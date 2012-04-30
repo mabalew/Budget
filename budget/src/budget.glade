@@ -15,6 +15,21 @@
       <column type="gchararray"/>
     </columns>
   </object>
+  <object class="GtkMenu" id="exp_tmp_context_menu">
+    <property name="visible">True</property>
+    <property name="can_focus">False</property>
+    <property name="ubuntu_local">True</property>
+    <child>
+      <object class="GtkMenuItem" id="exp_tmp_menuitem_delete">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="use_action_appearance">False</property>
+        <property name="label" translatable="yes">Usuń</property>
+        <property name="use_underline">True</property>
+        <signal name="activate" handler="on_exp_tmp_menuitem_delete_activate" swapped="no"/>
+      </object>
+    </child>
+  </object>
   <object class="GtkListStore" id="monthly_expenses_store">
     <columns>
       <!-- column-name category -->
@@ -46,25 +61,41 @@
   </object>
   <object class="GtkListStore" id="shopping_list_store">
     <columns>
-      <!-- column-name category_id -->
+      <!-- column-name id -->
       <column type="gint"/>
-      <!-- column-name category -->
-      <column type="gchararray"/>
       <!-- column-name product_id -->
       <column type="gint"/>
       <!-- column-name product -->
       <column type="gchararray"/>
+      <!-- column-name count -->
+      <column type="gint"/>
       <!-- column-name amount -->
       <column type="gfloat"/>
       <!-- column-name price -->
       <column type="gfloat"/>
+      <!-- column-name category_id -->
+      <column type="gint"/>
+      <!-- column-name category -->
+      <column type="gchararray"/>
       <!-- column-name shop_id -->
       <column type="gint"/>
       <!-- column-name shop -->
       <column type="gchararray"/>
-      <!-- column-name package -->
-      <column type="gint"/>
     </columns>
+    <data>
+      <row>
+        <col id="0">0</col>
+        <col id="1">0</col>
+        <col id="2" translatable="yes">p1</col>
+        <col id="3">0</col>
+        <col id="4">0</col>
+        <col id="5">0</col>
+        <col id="6">0</col>
+        <col id="7" translatable="yes">c1</col>
+        <col id="8">0</col>
+        <col id="9" translatable="yes">s1</col>
+      </row>
+    </data>
   </object>
   <object class="GtkListStore" id="shops_store">
     <columns>
@@ -72,6 +103,14 @@
       <column type="gint"/>
       <!-- column-name Nazwa -->
       <column type="gchararray"/>
+    </columns>
+  </object>
+  <object class="GtkListStore" id="yearly_expenses_store">
+    <columns>
+      <!-- column-name category -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gfloat"/>
     </columns>
   </object>
   <object class="GtkWindow" id="window">
@@ -274,22 +313,139 @@
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="yalign">0</property>
+                    <property name="yscale">0</property>
                     <child>
                       <object class="GtkVBox" id="vbox10">
                         <property name="visible">True</property>
                         <property name="can_focus">False</property>
                         <child>
-                          <object class="GtkAlignment" id="alignment37">
+                          <object class="GtkAlignment" id="alignment34">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
-                            <property name="yalign">1</property>
+                            <property name="yalign">0</property>
+                            <property name="yscale">0</property>
                             <child>
-                              <object class="GtkLabel" id="label3">
+                              <object class="GtkVBox" id="vbox18">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
-                                <property name="yalign">1</property>
-                                <property name="label" translatable="yes">Wydatki w bieżącym miesiącu:</property>
+                                <child>
+                                  <object class="GtkAlignment" id="alignment37">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="yalign">0</property>
+                                    <property name="yscale">0</property>
+                                    <child>
+                                      <object class="GtkLabel" id="label3">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="label" translatable="yes">Wydatki w bieżącym miesiącu:</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkAlignment" id="alignment35">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="yalign">0</property>
+                                    <property name="yscale">0</property>
+                                    <child>
+                                      <object class="GtkHBox" id="hbox1">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <object class="GtkAlignment" id="alignment55">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="yalign">0</property>
+                                            <child>
+                                              <object class="GtkScrolledWindow" id="scrolledwindow3">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="hscrollbar_policy">never</property>
+                                                <property name="vscrollbar_policy">automatic</property>
+                                                <property name="shadow_type">in</property>
+                                                <child>
+                                                  <object class="GtkTreeView" id="treeview_monthly_exp">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="model">monthly_expenses_store</property>
+                                                    <property name="headers_clickable">False</property>
+                                                    <property name="search_column">0</property>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="category_monthly_exp_column">
+                                                        <property name="min_width">35</property>
+                                                        <property name="title" translatable="yes">Kategoria</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="montlhy_exp_category_cell"/>
+                                                          <attributes>
+                                                            <attribute name="text">0</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="value_monthly_exp_column">
+                                                        <property name="min_width">35</property>
+                                                        <property name="title" translatable="yes">Kwota</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="monthly_exp_value_cell"/>
+                                                          <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                              </object>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">0</property>
+                                          </packing>
+                                        </child>
+                                        <child>
+                                          <object class="GtkAlignment" id="alignment57">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="yalign">0</property>
+                                            <property name="xscale">0</property>
+                                            <property name="yscale">0</property>
+                                            <child>
+                                              <object class="GtkLabel" id="sum_month_label">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">label</property>
+                                              </object>
+                                            </child>
+                                          </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
+                                        </child>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="padding">2</property>
+                                    <property name="position">1</property>
+                                  </packing>
+                                </child>
                               </object>
                             </child>
                           </object>
@@ -300,84 +456,131 @@
                           </packing>
                         </child>
                         <child>
-                          <object class="GtkHBox" id="hbox1">
+                          <object class="GtkAlignment" id="alignment36">
                             <property name="visible">True</property>
                             <property name="can_focus">False</property>
+                            <property name="yalign">0</property>
+                            <property name="yscale">0</property>
                             <child>
-                              <object class="GtkAlignment" id="alignment34">
+                              <object class="GtkVBox" id="vbox19">
                                 <property name="visible">True</property>
                                 <property name="can_focus">False</property>
-                                <property name="yalign">0</property>
                                 <child>
-                                  <object class="GtkScrolledWindow" id="scrolledwindow3">
+                                  <object class="GtkAlignment" id="alignment54">
                                     <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="hscrollbar_policy">never</property>
-                                    <property name="vscrollbar_policy">automatic</property>
-                                    <property name="shadow_type">in</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="yalign">0</property>
+                                    <property name="yscale">0</property>
                                     <child>
-                                      <object class="GtkTreeView" id="treeview_monthly_exp">
+                                      <object class="GtkLabel" id="label4">
                                         <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="model">monthly_expenses_store</property>
-                                        <property name="headers_clickable">False</property>
-                                        <property name="search_column">0</property>
+                                        <property name="can_focus">False</property>
+                                        <property name="xalign">0</property>
+                                        <property name="yalign">0</property>
+                                        <property name="label" translatable="yes">Wydatki w bieżącym roku:</property>
+                                      </object>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">0</property>
+                                  </packing>
+                                </child>
+                                <child>
+                                  <object class="GtkAlignment" id="alignment38">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <property name="yalign">0</property>
+                                    <property name="yscale">0</property>
+                                    <child>
+                                      <object class="GtkHBox" id="hbox12">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
                                         <child>
-                                          <object class="GtkTreeViewColumn" id="category_monthly_exp_column">
-                                            <property name="min_width">35</property>
-                                            <property name="title" translatable="yes">Kategoria</property>
+                                          <object class="GtkAlignment" id="alignment56">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
                                             <child>
-                                              <object class="GtkCellRendererText" id="montlhy_exp_category_cell"/>
-                                              <attributes>
-                                                <attribute name="text">0</attribute>
-                                              </attributes>
+                                              <object class="GtkScrolledWindow" id="scrolledwindow4">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">True</property>
+                                                <property name="hscrollbar_policy">never</property>
+                                                <property name="vscrollbar_policy">automatic</property>
+                                                <property name="shadow_type">in</property>
+                                                <child>
+                                                  <object class="GtkTreeView" id="treeview_yearly_exp">
+                                                    <property name="visible">True</property>
+                                                    <property name="can_focus">True</property>
+                                                    <property name="model">yearly_expenses_store</property>
+                                                    <property name="headers_clickable">False</property>
+                                                    <property name="search_column">0</property>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="yearly_exp_category_column">
+                                                        <property name="title" translatable="yes">Kategoria</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="yearly_exp_id_cell"/>
+                                                          <attributes>
+                                                            <attribute name="text">0</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                    <child>
+                                                      <object class="GtkTreeViewColumn" id="yearly_exp_valuecolumn">
+                                                        <property name="title" translatable="yes">Kwota</property>
+                                                        <child>
+                                                          <object class="GtkCellRendererText" id="yearly_exp_category_cell"/>
+                                                          <attributes>
+                                                            <attribute name="text">1</attribute>
+                                                          </attributes>
+                                                        </child>
+                                                      </object>
+                                                    </child>
+                                                  </object>
+                                                </child>
+                                              </object>
                                             </child>
                                           </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">0</property>
+                                          </packing>
                                         </child>
                                         <child>
-                                          <object class="GtkTreeViewColumn" id="value_monthly_exp_column">
-                                            <property name="min_width">35</property>
-                                            <property name="title" translatable="yes">Kwota</property>
+                                          <object class="GtkAlignment" id="alignment58">
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">False</property>
+                                            <property name="xalign">0</property>
+                                            <property name="yalign">0</property>
+                                            <property name="xscale">0</property>
+                                            <property name="yscale">0</property>
                                             <child>
-                                              <object class="GtkCellRendererText" id="monthly_exp_value_cell"/>
-                                              <attributes>
-                                                <attribute name="text">1</attribute>
-                                              </attributes>
+                                              <object class="GtkLabel" id="sum_year_label">
+                                                <property name="visible">True</property>
+                                                <property name="can_focus">False</property>
+                                                <property name="label" translatable="yes">label</property>
+                                              </object>
                                             </child>
                                           </object>
+                                          <packing>
+                                            <property name="expand">True</property>
+                                            <property name="fill">True</property>
+                                            <property name="position">1</property>
+                                          </packing>
                                         </child>
                                       </object>
                                     </child>
                                   </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="padding">2</property>
+                                    <property name="position">1</property>
+                                  </packing>
                                 </child>
                               </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkAlignment" id="alignment35">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="xalign">0</property>
-                                <property name="yalign">0</property>
-                                <property name="xscale">0</property>
-                                <property name="yscale">0</property>
-                                <child>
-                                  <object class="GtkLabel" id="sum_month_label">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">label</property>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
                             </child>
                           </object>
                           <packing>
@@ -385,105 +588,6 @@
                             <property name="fill">True</property>
                             <property name="padding">2</property>
                             <property name="position">1</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="label4">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <property name="xalign">0</property>
-                            <property name="yalign">1</property>
-                            <property name="label" translatable="yes">Wydatki w bieżącym roku:</property>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="position">2</property>
-                          </packing>
-                        </child>
-                        <child>
-                          <object class="GtkHBox" id="hbox12">
-                            <property name="visible">True</property>
-                            <property name="can_focus">False</property>
-                            <child>
-                              <object class="GtkAlignment" id="alignment36">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <child>
-                                  <object class="GtkScrolledWindow" id="scrolledwindow4">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">True</property>
-                                    <property name="hscrollbar_policy">never</property>
-                                    <property name="vscrollbar_policy">automatic</property>
-                                    <property name="shadow_type">in</property>
-                                    <child>
-                                      <object class="GtkTreeView" id="treeview_yearly_exp">
-                                        <property name="visible">True</property>
-                                        <property name="can_focus">True</property>
-                                        <property name="model">yearly_expenses_store</property>
-                                        <property name="headers_clickable">False</property>
-                                        <property name="search_column">0</property>
-                                        <child>
-                                          <object class="GtkTreeViewColumn" id="yearly_exp_category_column">
-                                            <property name="title" translatable="yes">Kategoria</property>
-                                            <child>
-                                              <object class="GtkCellRendererText" id="yearly_exp_id_cell"/>
-                                              <attributes>
-                                                <attribute name="text">0</attribute>
-                                              </attributes>
-                                            </child>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkTreeViewColumn" id="yearly_exp_valuecolumn">
-                                            <property name="title" translatable="yes">Kwota</property>
-                                            <child>
-                                              <object class="GtkCellRendererText" id="yearly_exp_category_cell"/>
-                                              <attributes>
-                                                <attribute name="text">1</attribute>
-                                              </attributes>
-                                            </child>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">0</property>
-                              </packing>
-                            </child>
-                            <child>
-                              <object class="GtkAlignment" id="alignment38">
-                                <property name="visible">True</property>
-                                <property name="can_focus">False</property>
-                                <property name="xalign">1</property>
-                                <property name="yalign">0</property>
-                                <property name="xscale">0</property>
-                                <property name="yscale">0</property>
-                                <child>
-                                  <object class="GtkLabel" id="sum_year_label">
-                                    <property name="visible">True</property>
-                                    <property name="can_focus">False</property>
-                                    <property name="label" translatable="yes">label</property>
-                                  </object>
-                                </child>
-                              </object>
-                              <packing>
-                                <property name="expand">True</property>
-                                <property name="fill">True</property>
-                                <property name="position">1</property>
-                              </packing>
-                            </child>
-                          </object>
-                          <packing>
-                            <property name="expand">True</property>
-                            <property name="fill">True</property>
-                            <property name="padding">2</property>
-                            <property name="position">3</property>
                           </packing>
                         </child>
                       </object>
@@ -553,6 +657,7 @@
                                                 <property name="can_focus">False</property>
                                                 <property name="model">shops_store</property>
                                                 <property name="wrap_width">5</property>
+                                                <signal name="changed" handler="on_exp_shops_combo_changed" swapped="no"/>
                                                 <child>
                                                   <object class="GtkCellRendererText" id="exp_shop_id_cell">
                                                     <property name="visible">False</property>
@@ -771,7 +876,7 @@
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <child>
-                                                          <object class="GtkEntry" id="entry1">
+                                                          <object class="GtkEntry" id="count_entry">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="max_length">5</property>
@@ -801,7 +906,7 @@
                                                           <object class="GtkLabel" id="label6">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">False</property>
-                                                            <property name="label" translatable="yes">Ilość:</property>
+                                                            <property name="label" translatable="yes">Obj/Masa:</property>
                                                           </object>
                                                         </child>
                                                       </object>
@@ -816,7 +921,7 @@
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <child>
-                                                          <object class="GtkEntry" id="entry2">
+                                                          <object class="GtkEntry" id="amount_entry">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="max_length">6</property>
@@ -861,7 +966,7 @@
                                                         <property name="visible">True</property>
                                                         <property name="can_focus">False</property>
                                                         <child>
-                                                          <object class="GtkEntry" id="entry3">
+                                                          <object class="GtkEntry" id="price_entry">
                                                             <property name="visible">True</property>
                                                             <property name="can_focus">True</property>
                                                             <property name="max_length">12</property>
@@ -895,7 +1000,18 @@
                                                     <property name="visible">True</property>
                                                     <property name="can_focus">False</property>
                                                     <child>
-                                                      <placeholder/>
+                                                      <object class="GtkButton" id="delete_new_expense_button">
+                                                        <property name="label" translatable="yes">Usuń</property>
+                                                        <property name="visible">True</property>
+                                                        <property name="can_focus">True</property>
+                                                        <property name="receives_default">True</property>
+                                                        <property name="use_action_appearance">False</property>
+                                                      </object>
+                                                      <packing>
+                                                        <property name="expand">True</property>
+                                                        <property name="fill">True</property>
+                                                        <property name="position">0</property>
+                                                      </packing>
                                                     </child>
                                                     <child>
                                                       <object class="GtkAlignment" id="alignment51">
@@ -930,6 +1046,7 @@
                                                             <property name="can_focus">True</property>
                                                             <property name="receives_default">True</property>
                                                             <property name="use_action_appearance">False</property>
+                                                            <signal name="clicked" handler="on_add_new_expense_button_clicked" swapped="no"/>
                                                           </object>
                                                         </child>
                                                       </object>
@@ -1003,6 +1120,21 @@
                                             <property name="search_column">0</property>
                                             <property name="enable_grid_lines">both</property>
                                             <child>
+                                              <object class="GtkTreeViewColumn" id="id_column">
+                                                <property name="min_width">0</property>
+                                                <property name="max_width">0</property>
+                                                <property name="title" translatable="yes">ID</property>
+                                                <child>
+                                                  <object class="GtkCellRendererText" id="id_cell">
+                                                    <property name="visible">False</property>
+                                                  </object>
+                                                  <attributes>
+                                                    <attribute name="text">0</attribute>
+                                                  </attributes>
+                                                </child>
+                                              </object>
+                                            </child>
+                                            <child>
                                               <object class="GtkTreeViewColumn" id="product_id_column">
                                                 <property name="max_width">0</property>
                                                 <property name="title" translatable="yes">ID produktu</property>
@@ -1011,7 +1143,7 @@
                                                     <property name="visible">False</property>
                                                   </object>
                                                   <attributes>
-                                                    <attribute name="text">2</attribute>
+                                                    <attribute name="text">1</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1022,7 +1154,7 @@
                                                 <child>
                                                   <object class="GtkCellRendererText" id="product_cell"/>
                                                   <attributes>
-                                                    <attribute name="text">3</attribute>
+                                                    <attribute name="text">2</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1031,9 +1163,13 @@
                                               <object class="GtkTreeViewColumn" id="packages_column">
                                                 <property name="title" translatable="yes">Il. opak.</property>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="package_cell"/>
+                                                  <object class="GtkCellRendererText" id="count_cell">
+                                                    <property name="editable">True</property>
+                                                    <property name="width_chars">4</property>
+                                                    <signal name="edited" handler="on_count_cell_edited" swapped="no"/>
+                                                  </object>
                                                   <attributes>
-                                                    <attribute name="text">8</attribute>
+                                                    <attribute name="text">3</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1042,7 +1178,9 @@
                                               <object class="GtkTreeViewColumn" id="amount_column">
                                                 <property name="title" translatable="yes">Obj/Masa</property>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="amount_cell"/>
+                                                  <object class="GtkCellRendererText" id="amount_cell">
+                                                    <property name="editable">True</property>
+                                                  </object>
                                                   <attributes>
                                                     <attribute name="text">4</attribute>
                                                   </attributes>
@@ -1053,7 +1191,9 @@
                                               <object class="GtkTreeViewColumn" id="price_column">
                                                 <property name="title" translatable="yes">Cena</property>
                                                 <child>
-                                                  <object class="GtkCellRendererText" id="price_cell"/>
+                                                  <object class="GtkCellRendererText" id="price_cell">
+                                                    <property name="editable">True</property>
+                                                  </object>
                                                   <attributes>
                                                     <attribute name="text">5</attribute>
                                                   </attributes>
@@ -1069,7 +1209,7 @@
                                                     <property name="visible">False</property>
                                                   </object>
                                                   <attributes>
-                                                    <attribute name="text">0</attribute>
+                                                    <attribute name="text">6</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1080,7 +1220,7 @@
                                                 <child>
                                                   <object class="GtkCellRendererText" id="category_cell"/>
                                                   <attributes>
-                                                    <attribute name="text">1</attribute>
+                                                    <attribute name="text">7</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1094,7 +1234,7 @@
                                                     <property name="visible">False</property>
                                                   </object>
                                                   <attributes>
-                                                    <attribute name="text">6</attribute>
+                                                    <attribute name="text">8</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1105,7 +1245,7 @@
                                                 <child>
                                                   <object class="GtkCellRendererText" id="shop_cell"/>
                                                   <attributes>
-                                                    <attribute name="text">7</attribute>
+                                                    <attribute name="text">9</attribute>
                                                   </attributes>
                                                 </child>
                                               </object>
@@ -1197,7 +1337,24 @@
                                   </packing>
                                 </child>
                                 <child>
-                                  <placeholder/>
+                                  <object class="GtkHBox" id="hbox15">
+                                    <property name="visible">True</property>
+                                    <property name="can_focus">False</property>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                    <child>
+                                      <placeholder/>
+                                    </child>
+                                  </object>
+                                  <packing>
+                                    <property name="expand">True</property>
+                                    <property name="fill">True</property>
+                                    <property name="position">6</property>
+                                  </packing>
                                 </child>
                               </object>
                             </child>
@@ -2401,13 +2558,5 @@
         </child>
       </object>
     </child>
-  </object>
-  <object class="GtkListStore" id="yearly_expenses_store">
-    <columns>
-      <!-- column-name category -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gfloat"/>
-    </columns>
   </object>
 </interface>

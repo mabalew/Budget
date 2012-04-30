@@ -90,42 +90,58 @@ add_config	config.c	/^int add_config(char *param_name, char *value) {$/;"	f
 add_expense	expense.c	/^int add_expense(Expense *e) {$/;"	f
 add_product	product.c	/^int add_product(Product *p) {$/;"	f
 add_shop	shop.c	/^int add_shop(Shop *s) {$/;"	f
+add_tmp_expense	expense.c	/^int add_tmp_expense(Expense *e, signed int *rowid) {$/;"	f
 add_to_category	product.c	/^int add_to_category(Product *p) {$/;"	f
 add_user	user.c	/^int add_user(User *p) {$/;"	f
 amount	expense.h	/^	float amount;$/;"	m	struct:expense	file:
+amount_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
 avg_price	main.c	/^double max_price, min_price, avg_price;$/;"	v
 avg_value_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
 builder	main.c	/^GtkBuilder *builder;$/;"	v
 categories	db.sql	/^CREATE TABLE categories($/;"	t
-categories.category_name	db.sql	/^	id INTEGER primary key autoincrement,$/;"	F
+categories	example/categories_pl.sql	/^CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100) unique not null);$/;"	t
+categories.category_name	db.sql	/^	id integer primary key autoincrement,$/;"	F
+categories.category_name	example/categories_pl.sql	/^CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100) unique not null);$/;"	F
 categories.id	db.sql	/^CREATE TABLE categories($/;"	F
-categories_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store;$/;"	v
+categories.id	example/categories_pl.sql	/^CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100) unique not null);$/;"	F
+categories_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v
 category	category.h	/^typedef struct category {$/;"	s	file:
 category	expense.h	/^	char *category;$/;"	m	struct:expense	file:
 category	report.h	/^	char *category;$/;"	m	struct:report_row	file:
 category_id	expense.h	/^	int category_id;$/;"	m	struct:expense	file:
 category_id	product.h	/^	int category_id;$/;"	m	struct:product	file:
-category_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;$/;"	v
+category_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
 check_db_open	db.c	/^void check_db_open(int error) {$/;"	f
+config	db.sql	/^CREATE TABLE config($/;"	t
+config.param	db.sql	/^CREATE TABLE config($/;"	F
+config.value	db.sql	/^	param varchar2(100) primary key,$/;"	F
+config_exists	config.c	/^int config_exists(char *param_name, int *count) {$/;"	f
 configured_level	log.c	/^int configured_level = -1;$/;"	v
+count	expense.h	/^	int count;$/;"	m	struct:expense	file:
+count_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
 count_monthly_categories	report.c	/^int count_monthly_categories(char *year, char *month) {$/;"	f
 count_yearly_categories	report.c	/^int count_yearly_categories(char *year) {$/;"	f
+create_expense_from_form	main.c	/^void create_expense_from_form(Expense *e) {$/;"	f
 date	log.h	/^	char *date;$/;"	m	struct:log	file:
 del_category	category.c	/^int del_category(Category *c) {$/;"	f
 del_expense	expense.c	/^int del_expense(Expense *e) {$/;"	f
 del_product	product.c	/^int del_product(Product *p) {$/;"	f
 del_shop	shop.c	/^int del_shop(Shop *s) {$/;"	f
 del_user	user.c	/^int del_user(User *p) {$/;"	f
+delete_new_expense_button	main.c	/^GtkButton *min_button, *max_button, *delete_new_expense_button;$/;"	v
 err_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
+exp_categories_combo	main.c	/^GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;$/;"	v
 exp_date	expense.h	/^	char *exp_date;$/;"	m	struct:expense	file:
+exp_products_combo	main.c	/^GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;$/;"	v
+exp_shops_combo	main.c	/^GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;$/;"	v
 expense	expense.h	/^typedef struct expense {$/;"	s	file:
 expenses	db.sql	/^CREATE TABLE expenses($/;"	t
-expenses.amount	db.sql	/^	exp_date datetime DEFAULT CURRENT_TIMESTAMP,$/;"	F
-expenses.exp_date	db.sql	/^	id INTEGER primary key autoincrement,$/;"	F
+expenses.amount	db.sql	/^	exp_date datetime default CURRENT_TIMESTAMP,$/;"	F
+expenses.exp_date	db.sql	/^	id integer primary key autoincrement,$/;"	F
 expenses.id	db.sql	/^CREATE TABLE expenses($/;"	F
-expenses.price	db.sql	/^	shop_id INTEGER DEFAULT 0,$/;"	F
-expenses.product_id	db.sql	/^	amount DOUBLE DEFAULT 1.0,$/;"	F
-expenses.shop_id	db.sql	/^	product_id INTEGER NOT NULL,$/;"	F
+expenses.price	db.sql	/^	shop_id integer default 0,$/;"	F
+expenses.product_id	db.sql	/^	amount double default 1.0,$/;"	F
+expenses.shop_id	db.sql	/^	product_id integer not null,$/;"	F
 fetch_category_list	main.c	/^void fetch_category_list() {$/;"	f
 fetch_monthly_exp_list	main.c	/^void fetch_monthly_exp_list() {$/;"	f
 fetch_monthly_report	report.c	/^void fetch_monthly_report(char *year, char *month, Row **rows) {$/;"	f
@@ -157,6 +173,7 @@ get_expense	expense.c	/^int get_expense(int expense_id, Expense *e) {$/;"	f
 get_expense_by_id	expense.c	/^int get_expense_by_id(Expense *e) {$/;"	f
 get_expenses	expense.c	/^int get_expenses(char *year, char *month, Expense *list[]) {$/;"	f
 get_expenses_count	expense.c	/^int get_expenses_count(char *year, char *month) {$/;"	f
+get_id_from_combo	main.c	/^int get_id_from_combo(GtkComboBox *combo, int *id) {$/;"	f
 get_logs	log.c	/^void get_logs(Level level, Log *list[]) {$/;"	f
 get_logs_count	log.c	/^int get_logs_count(Level level) {$/;"	f
 get_monthly_expenses	report.c	/^void get_monthly_expenses(char *year, char *month, Row **rows) {$/;"	f
@@ -215,15 +232,15 @@ manage_expense	expense_utils.c	/^int manage_expense(int argc, char *argv[]) {$/;
 manage_product	product_utils.c	/^int manage_product(int argc, char *argv[]) {$/;"	f
 manage_shop	shop_utils.c	/^int manage_shop(int argc, char *argv[]) {$/;"	f
 manage_user	user_utils.c	/^void manage_user(int argc, char *argv[]) {$/;"	f
-max_button	main.c	/^GtkButton *min_button, *max_button;$/;"	v
+max_button	main.c	/^GtkButton *min_button, *max_button, *delete_new_expense_button;$/;"	v
 max_expenses	main.c	/^Expense **max_expenses, **min_expenses;$/;"	v
-max_expenses_count	main.c	/^int max_expenses_count, min_expenses_count;$/;"	v
+max_expenses_count	main.c	/^int max_expenses_count, min_expenses_count, selected_category_id=0;$/;"	v
 max_price	main.c	/^double max_price, min_price, avg_price;$/;"	v
-min_button	main.c	/^GtkButton *min_button, *max_button;$/;"	v
+min_button	main.c	/^GtkButton *min_button, *max_button, *delete_new_expense_button;$/;"	v
 min_expenses	main.c	/^Expense **max_expenses, **min_expenses;$/;"	v
-min_expenses_count	main.c	/^int max_expenses_count, min_expenses_count;$/;"	v
+min_expenses_count	main.c	/^int max_expenses_count, min_expenses_count, selected_category_id=0;$/;"	v
 min_price	main.c	/^double max_price, min_price, avg_price;$/;"	v
-monthly_expenses_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store;$/;"	v
+monthly_expenses_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v
 msg	log.h	/^	char *msg;$/;"	m	struct:log	file:
 name	category.h	/^	char *name;$/;"	m	struct:category	file:
 name	product.h	/^	char *name;$/;"	m	struct:product	file:
@@ -234,9 +251,12 @@ nick	user.h	/^	char *nick;$/;"	m	struct:user	file:
 old_category_name	main.c	/^char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;$/;"	v
 old_product_name	main.c	/^char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;$/;"	v
 old_shop_name	main.c	/^char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;$/;"	v
+on_add_new_expense_button_clicked	main.c	/^void on_add_new_expense_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
 on_category_add_button_clicked	main.c	/^void on_category_add_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
 on_category_delete_button_clicked	main.c	/^void on_category_delete_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
 on_category_update_button_clicked	main.c	/^void on_category_update_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
+on_exp_categories_combo_changed	main.c	/^void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {$/;"	f
+on_exp_shops_combo_changed	main.c	/^void on_exp_shops_combo_changed(GtkWidget *widget, gpointer data) {$/;"	f
 on_product_new_add_button_clicked	main.c	/^void on_product_new_add_button_clicked(GtkObject *object, gpointer data) {$/;"	f
 on_product_new_update_button_clicked	main.c	/^void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
 on_shop_add_button_clicked	main.c	/^void on_shop_add_button_clicked(GtkWidget *widget, gpointer data) {$/;"	f
@@ -249,6 +269,7 @@ on_window_destroy	main.c	/^void on_window_destroy(GtkObject *object, gpointer da
 password	user.h	/^	char *password;$/;"	m	struct:user	file:
 price	expense.h	/^	float price;$/;"	m	struct:expense	file:
 price	expense.h	/^enum price {$/;"	g	file:
+price_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
 print_expense	expense_utils.c	/^void print_expense(Expense *e) {$/;"	f
 print_monthly_report	report.c	/^void print_monthly_report(Row **rows, int row_count) {$/;"	f
 print_status	main.c	/^void print_status(int msg_no, int data) {$/;"	f
@@ -258,41 +279,48 @@ process_min_price	main.c	/^void process_min_price() {$/;"	f
 product	expense.h	/^	char *product;$/;"	m	struct:expense	file:
 product	product.h	/^typedef struct product {$/;"	s	file:
 product_id	expense.h	/^	int product_id;$/;"	m	struct:expense	file:
-product_new_categories_cb	main.c	/^GtkComboBox  *product_new_categories_cb;$/;"	v
-product_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;$/;"	v
+product_new_categories_cb	main.c	/^GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;$/;"	v
+product_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
 products	db.sql	/^CREATE TABLE products($/;"	t
-products.category_id	db.sql	/^	product_name VARCHAR2(100) NOT NULL,$/;"	F
+products.category_id	db.sql	/^	product_name varchar2(100),$/;"	F
 products.id	db.sql	/^CREATE TABLE products($/;"	F
-products.idx_products	db.sql	/^CREATE UNIQUE INDEX idx_products ON products(product_name, category_id);$/;"	i
-products.product_name	db.sql	/^	id INTEGER primary key autoincrement,$/;"	F
-products_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store;$/;"	v
+products.product_name	db.sql	/^	id integer primary key autoincrement,$/;"	F
+products.products_idx	db.sql	/^CREATE UNIQUE INDEX products_idx on products(product_name, category_id);$/;"	i
+products_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v
 replace_str	utils.c	/^char *replace_str(char *str, char *orig, char *rep) {$/;"	f
 report_row	report.h	/^typedef struct report_row {$/;"	s	file:
 select_combo	main.c	/^void select_combo(GtkComboBox *combo, char *item_text) {$/;"	f
 select_list	main.c	/^void select_list(GtkTreeView *tree_view, char *item_text) {$/;"	f
+selected_category_id	main.c	/^int max_expenses_count, min_expenses_count, selected_category_id=0;$/;"	v
 shop	expense.h	/^	char *shop;$/;"	m	struct:expense	file:
 shop	shop.h	/^typedef struct shop {$/;"	s	file:
 shop_id	expense.h	/^	int shop_id;$/;"	m	struct:expense	file:
-shop_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;$/;"	v
+shop_new_name_entry	main.c	/^GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;$/;"	v
+shopping_list_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v
 shops	db.sql	/^CREATE TABLE shops($/;"	t
 shops.id	db.sql	/^CREATE TABLE shops($/;"	F
-shops.shop_name	db.sql	/^	id INTEGER primary key autoincrement,$/;"	F
+shops.shop_name	db.sql	/^	id integer primary key autoincrement,$/;"	F
 shops_max_price_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
 shops_min_price_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
-shops_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store;$/;"	v
+shops_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v
 status_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
 sum_month_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
 sum_year_label	main.c	/^GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;$/;"	v
-treeview_categories	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp;$/;"	v
-treeview_categories_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection;$/;"	v
-treeview_monthly_exp	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp;$/;"	v
-treeview_monthly_exp_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection;$/;"	v
-treeview_products	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp;$/;"	v
-treeview_products_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection;$/;"	v
-treeview_shops	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp;$/;"	v
-treeview_shops_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection;$/;"	v
+treeview_categories	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_categories_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
+treeview_monthly_exp	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_monthly_exp_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
+treeview_products	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_products_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
+treeview_shopping_list	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_shopping_list_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
+treeview_shops	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_shops_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
+treeview_yearly_exp	main.c	/^GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;$/;"	v
+treeview_yearly_exp_selection	main.c	/^GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;$/;"	v
 unit_price	expense.h	/^	float unit_price;$/;"	m	struct:expense	file:
 update_category	category.c	/^int update_category(Category *old_category, Category *new_category) {$/;"	f
+update_config	config.c	/^int update_config(char *param_name, char *value) {$/;"	f
 update_expense	expense.c	/^int update_expense(Expense *old_expense, Expense *new_expense) {$/;"	f
 update_product	product.c	/^int update_product(Product *old_product, Product *new_product) {$/;"	f
 update_shop	shop.c	/^int update_shop(Shop *old_shop, Shop *new_shop) {$/;"	f
@@ -300,8 +328,8 @@ update_user	user.c	/^int update_user(User *old_user, User *new_user) {$/;"	f
 user	user.h	/^typedef struct user {$/;"	s	file:
 users	db.sql	/^CREATE TABLE users($/;"	t
 users.id	db.sql	/^CREATE TABLE users($/;"	F
-users.login	db.sql	/^	id INTEGER primary key autoincrement,$/;"	F
-users.password	db.sql	/^	login VARCHAR2(50) NOT NULL UNIQUE,$/;"	F
+users.login	db.sql	/^	id integer primary key autoincrement,$/;"	F
+users.password	db.sql	/^	login varchar2(50), password varchar2(32)$/;"	F
 v_debug_logs	logs.sql	/^CREATE VIEW v_debug_logs as$/;"	V
 v_error_logs	logs.sql	/^CREATE VIEW v_error_logs as$/;"	V
 v_expenses	db.sql	/^CREATE VIEW v_expenses as$/;"	V
@@ -311,3 +339,4 @@ v_trace_logs	logs.sql	/^CREATE VIEW v_trace_logs as$/;"	V
 v_warn_logs	logs.sql	/^CREATE VIEW v_warn_logs as$/;"	V
 value	report.h	/^	double value;$/;"	m	struct:report_row	file:
 verify_number_of_parameters	utils.c	/^void verify_number_of_parameters(int argc, int should_be) {$/;"	f
+yearly_expenses_store	main.c	/^GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;$/;"	v

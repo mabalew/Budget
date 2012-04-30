@@ -10,12 +10,15 @@
 #include "log.h"
 #include "report.h"
 #include "expense.h"
+#include "config.h"
 
 GtkBuilder *builder;
+GtkMenu *exp_tmp_context_menu;
+GtkMenuItem *exp_tmp_menuitem_delete;
 GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;
-GtkButton *min_button, *max_button;
-GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry;
-GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo;
+GtkButton *min_button, *max_button, *delete_new_expense_button;
+GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;
+GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;
 GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;
 GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;
 GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;
@@ -25,6 +28,11 @@ int max_expenses_count, min_expenses_count, selected_category_id=0;
 double max_price, min_price, avg_price;
 char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;
 
+void view_exp_tmp_context_menu();
+void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event);
+void add_tmp_expense_to_table(Expense *e);
+void create_expense_from_form(Expense *e);
+int get_id_from_combo(GtkComboBox *combo, int *id);
 void on_category_add_button_clicked(GtkWidget *widget, gpointer data);
 void on_category_update_button_clicked(GtkWidget *widget, gpointer data);
 void on_category_delete_button_clicked(GtkWidget *widget, gpointer data);
@@ -188,15 +196,25 @@ void on_product_new_add_button_clicked(GtkObject *object, gpointer data) {
 	if (strlen((char*)nazwa) == 0) {
 		print_status(1, -1);
 	} else {
-		if (gtk_combo_box_get_active_iter(product_new_categories_cb, &iter)) {
-			GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(product_new_categories_cb));
-			int category_id;
-			gtk_tree_model_get(model, &iter, 0, &category_id, -1);
+		int category_id;
+		if (get_id_from_combo(product_new_categories_cb, &category_id) == 0) {
 			_add_product(nazwa, category_id);
 			fetch_product_list();
 			select_combo(product_new_categories_cb, "-");
 		}
 	}
+}
+
+// Gets id (int value) from the combo given as parameter.
+// Returns 0 in case of success, 1 otherwise.
+int get_id_from_combo(GtkComboBox *combo, int *id) {
+		if (gtk_combo_box_get_active_iter(combo, &iter)) {
+			GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(combo));
+			gtk_tree_model_get(model, &iter, 0, id, -1);
+		} else {
+			return 1;
+		}
+		return 0;
 }
 
 void on_treeview_products_changed(GtkWidget *widget, gpointer window) {
@@ -295,13 +313,8 @@ void process_avg_price() {
 }
 
 void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {
-	char *msg = malloc(125);
-	int id = 0;
 	int category_id;
-	if ((id = gtk_combo_box_get_active(GTK_COMBO_BOX(product_new_categories_cb))) != -1) {
-		gtk_combo_box_get_active_iter(product_new_categories_cb, &iter);
-		GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(product_new_categories_cb));
-		gtk_tree_model_get(model, &iter, 0, &category_id, -1);
+	if (get_id_from_combo(GTK_COMBO_BOX(product_new_categories_cb), &category_id) == 0) {
 		char *new_product_name = (char*)gtk_entry_get_text(GTK_ENTRY(product_new_name_entry));
 		int status = _update_product(old_product_name, new_product_name, category_id);
 		if (status == 0) {
@@ -312,7 +325,6 @@ void on_product_new_update_button_clicked(GtkWidget *widget, gpointer data) {
 	} else {
 		print_status(5, 0);
 	}
-	free(msg);
 	fetch_product_list();
 	select_list(treeview_products, (char*)gtk_entry_get_text(GTK_ENTRY(product_new_name_entry)));
 	gtk_entry_set_text(GTK_ENTRY(product_new_name_entry), "");
@@ -366,6 +378,15 @@ void init_components() {
 	fetch_shop_list();
 	fetch_monthly_exp_list();
 	fetch_yearly_exp_list();
+
+	int last_selected_shop_is_set = 1;
+	char *last_selected_shop = malloc(255);
+	config_exists("LAST_SELECTED_SHOP", &last_selected_shop_is_set);
+	if (last_selected_shop_is_set > 0) {
+		get_config("LAST_SELECTED_SHOP", last_selected_shop);
+		select_combo(exp_shops_combo, last_selected_shop);
+	}
+	free(last_selected_shop);
 }
 
 int main(int argc, char *argv[]) {
@@ -380,6 +401,12 @@ int main(int argc, char *argv[]) {
 	product_new_name_entry = GTK_WIDGET(gtk_builder_get_object(builder, "product_new_name_entry"));
 	category_new_name_entry = GTK_WIDGET(gtk_builder_get_object(builder, "category_new_name_entry"));
 	shop_new_name_entry = GTK_WIDGET(gtk_builder_get_object(builder, "shop_new_name_entry"));
+	amount_entry = GTK_WIDGET(gtk_builder_get_object(builder, "amount_entry"));
+	count_entry = GTK_WIDGET(gtk_builder_get_object(builder, "count_entry"));
+	price_entry = GTK_WIDGET(gtk_builder_get_object(builder, "price_entry"));
+	status_label = GTK_LABEL(gtk_builder_get_object(builder, "status_label"));
+	err_label = GTK_LABEL(gtk_builder_get_object(builder, "err_label"));
+	shops_max_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_max_price_label"));
 	status_label = GTK_LABEL(gtk_builder_get_object(builder, "status_label"));
 	err_label = GTK_LABEL(gtk_builder_get_object(builder, "err_label"));
 	shops_max_price_label = GTK_LABEL(gtk_builder_get_object (builder, "shops_max_price_label"));
@@ -419,9 +446,15 @@ int main(int argc, char *argv[]) {
 	treeview_yearly_exp_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_yearly_exp));
 
 	exp_categories_combo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "exp_categories_combo"));
+	exp_products_combo = GTK_COMBO_BOX(gtk_builder_get_object(builder, "exp_products_combo"));
 
 	sum_month_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_month_label"));
 	sum_year_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_year_label"));
+
+	delete_new_expense_button = GTK_BUTTON(gtk_builder_get_object(builder, "delete_new_expense_button"));
+
+	exp_tmp_context_menu = GTK_MENU(gtk_builder_get_object(builder, "exp_tmp_context_menu"));
+	exp_tmp_menuitem_delete = GTK_MENU_ITEM(gtk_builder_get_object(builder, "exp_tmp_menuitem_delete"));
 
 	init_components();
 	g_object_unref(G_OBJECT(GTK_BUILDER(builder)));
@@ -615,12 +648,96 @@ void on_treeview_shops_changed(GtkWidget *widget, gpointer data) {
 
 // Expenses
 void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {
-		if (gtk_combo_box_get_active_iter(exp_categories_combo, &iter)) {
-			GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_categories_combo));
-			gtk_tree_model_get(model, &iter, 0, &selected_category_id, -1);
+	if (get_id_from_combo(exp_categories_combo, &selected_category_id) == 0) {
 			g_print("Wybrano %d\n", selected_category_id);
 			fetch_product_list();
  	}
 	g_print("Nie wybrano\n");
 	fetch_product_list();
 }
+
+void on_exp_shops_combo_changed(GtkWidget *widget, gpointer data) {
+	int count;
+	char *last_selected_shop = malloc(255);
+	config_exists("LAST_SELECTED_SHOP", &count);
+	if (gtk_combo_box_get_active_iter(exp_shops_combo, &iter)) {
+		GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_shops_combo));
+		gtk_tree_model_get(model, &iter, 1, &last_selected_shop, -1);
+		printf("last_selected_shop: %s\n", last_selected_shop);
+	}	
+	if (count > 0) {
+		update_config("LAST_SELECTED_SHOP", last_selected_shop);
+	} else {
+		add_config("LAST_SELECTED_SHOP", last_selected_shop);
+	}
+	free(last_selected_shop);
+}
+
+void on_add_new_expense_button_clicked(GtkWidget *widget, gpointer data) {
+	Expense *e = malloc(sizeof (Expense));
+	e->category = malloc(255);
+	create_expense_from_form(e);
+	int id;
+	add_tmp_expense(e, &id);
+	e->id = id;
+	add_tmp_expense_to_table(e);
+}
+
+void add_tmp_expense_to_table(Expense *e) {
+	gtk_list_store_append(shopping_list_store, &iter);
+	gtk_list_store_set(shopping_list_store, &iter, 0, e->id, 1, e->product_id, 2, e->product, 3, e->count, 4, e->amount, 5, e->price, 6, e->category_id, 7, e->category, 8, e->shop_id, 9, e->shop, -1);
+}
+
+void create_expense_from_form(Expense *e) {
+	get_id_from_combo(exp_categories_combo, &(e->category_id));
+	GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_categories_combo));
+	gtk_tree_model_get(model, &iter, 1, &(e->category), -1);
+	get_id_from_combo(exp_products_combo, &(e->product_id));
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_products_combo));
+	gtk_tree_model_get(model, &iter, 1, &(e->product), -1);
+	get_id_from_combo(exp_shops_combo, &(e->shop_id));
+	model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_shops_combo));
+	gtk_tree_model_get(model, &iter, 1, &(e->shop), -1);
+	char *tmp;
+	tmp = g_strdup(gtk_entry_get_text(GTK_ENTRY(count_entry)));
+	e->count = atoi(tmp);
+	tmp = g_strdup(gtk_entry_get_text(GTK_ENTRY(amount_entry)));
+	e->amount = atof(tmp);
+	tmp = g_strdup(gtk_entry_get_text(GTK_ENTRY(price_entry)));
+	e->price = atof(tmp);
+	printf("c_id: %d c: %s p_id: %d p: %s s_id: %d s: %s count: %d amount: %f price: %f\n", e->category_id, e->category, e->product_id, e->product, e->shop_id, e->shop, e->count, e->amount, e->price);
+}
+
+void create_expense_from_list(Expense *e) {
+	GtkTreeModel *model;
+	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_shopping_list), &model, &iter)) {
+		e->product = malloc(255);
+		e->category = malloc(255);
+		e->shop = malloc(255);
+		gtk_tree_model_get(model, &iter, 0, &(e->id), -1);
+		gtk_tree_model_get(model, &iter, 1, &(e->product_id), -1);
+		gtk_tree_model_get(model, &iter, 2, &(e->product), -1);
+		gtk_tree_model_get(model, &iter, 3, &(e->count), -1);
+		gtk_tree_model_get(model, &iter, 4, &(e->amount), -1);
+		gtk_tree_model_get(model, &iter, 5, &(e->price), -1);
+		gtk_tree_model_get(model, &iter, 6, &(e->category_id), -1);
+		gtk_tree_model_get(model, &iter, 7, &(e->category), -1);
+		gtk_tree_model_get(model, &iter, 8, &(e->shop_id), -1);
+		gtk_tree_model_get(model, &iter, 9, &(e->shop), -1);
+	}
+}
+
+void on_count_cell_edited() {
+	Expense *e = malloc(sizeof(Expense));
+	create_expense_from_list(e);
+	printf("id: %d\n", e->id);
+}
+
+/*void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {
+	if (event->type == GDK_BUTTON_PRESS) {
+		GdkEventButton *event_button = (GdkEventButton*) event;
+		if (event_button->button == 3) {
+			gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, event_button->button, event_button->time);
+		}
+	}
+}*/
