@@ -14,8 +14,9 @@ void _log(Level level, char *msg) {
 	if (configured_level == -1) {
 		char *LOGGING_LEVEL = malloc(2);
 		get_config("LOGGING_LEVEL", LOGGING_LEVEL);
-		printf("LOGGING_LEVEL: %s\n", LOGGING_LEVEL);
 		configured_level = atoi(LOGGING_LEVEL);
+		if (configured_level >= 2)
+			printf("LOGGING_LEVEL: %s\n", LOGGING_LEVEL);
 		free(LOGGING_LEVEL);
 	}
 	if (level >= configured_level) {
