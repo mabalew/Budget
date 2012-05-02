@@ -169,7 +169,6 @@ void fetch_yearly_report(char *year, Row **rows) {
 		rows[counter]->category = malloc(sizeof(char) * strlen((char*)sqlite3_column_text(res, 0)) + 1);
 		strcpy(rows[counter]->category, (char*)sqlite3_column_text(res, 0));
 		rows[counter]->value = sqlite3_column_double(res, 1);
-		printf("[YR] Category: %s - %f\n", rows[counter]->category, rows[counter]->value);
 		counter++;
 	}
 

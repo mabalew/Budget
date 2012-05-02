@@ -68,7 +68,6 @@ int add_tmp_expense(Expense *e, signed int *rowid) {
 		return error;
 	}
 	*rowid = sqlite3_last_insert_rowid(conn);
-	printf("dodane id: %d\n", *rowid);
 	sqlite3_close(conn);
 	sqlite3_free(sql);
 	sprintf(msg, "add_tmp_expense: added [shop id: %d] [price: %.2f]", e->shop_id, e->price);

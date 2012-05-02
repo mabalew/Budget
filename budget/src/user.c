@@ -9,21 +9,17 @@
 extern void check_db_open(int error);
 
 bool login(User *p) {
-	//printf("%s :: %s\n", p->nick, p->password);
 	User *user = (User *)malloc(sizeof user);
 	user->nick = p->nick;
 	get_user_by_login(user);
 	if (strcmp(p->password, user->password) == 0) {
-		//printf("OK\n");
 		return true;
 	} else {
-		//printf("ERROR\n");
 		return false;
 	}
 }
 
 int add_user(User *p) {
-	//printf("adding: %s, %s\n", p->nick, p->password);
 	sqlite3 *conn;
 	int error = 0;
 	error = sqlite3_open(DB_FILE, &conn);
@@ -41,7 +37,6 @@ int add_user(User *p) {
 }
 
 int del_user(User *p) {
-	//printf("removing: %s\n", p->nick);
 	sqlite3 *conn;
 	int error = 0;
 	error = sqlite3_open(DB_FILE, &conn);
@@ -104,7 +99,6 @@ int get_users_count() {
 }
 
 int get_all_users(User *list[]) {
-	//printf("listing of all the users\n");
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -140,7 +134,6 @@ int get_all_users(User *list[]) {
 }
 
 int get_user_by_id(User *p) {
-	//printf("getting user with id %d\n", p->id);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -155,7 +148,6 @@ int get_user_by_id(User *p) {
 		strcpy(p->nick, (char*)sqlite3_column_text(res, 1));
 		strcpy(p->password, (char*)sqlite3_column_text(res, 2));
 	}
-	//printf("%s %s\n", p->nick, p->password);
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
 	sqlite3_free(sql);
@@ -169,7 +161,6 @@ int get_user_by_id(User *p) {
 }
 
 int get_user_by_login(User *p) {
-	//printf("getting user with login %s\n", p->nick);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
