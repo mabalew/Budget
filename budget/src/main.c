@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <string.h>
+#include <time.h>
 #include "product_utils.h"
 #include "product.h"
 #include "category_utils.h"
@@ -137,7 +138,15 @@ void fetch_shop_list() {
 }
 
 void fetch_monthly_exp_list() {
-	int rows_count = count_monthly_categories("2012", "02");
+	struct tm *tm;
+	time_t t;
+	char year[10];
+	char month[5];
+	t = time(NULL);
+	tm = localtime(&t);
+	strftime(year, sizeof(year), "%Y", tm);
+	strftime(month, sizeof(month), "%m", tm);
+	int rows_count = count_monthly_categories(year, month);
 	char *msg = malloc(125);
 	print_status(6, rows_count);
 	int counter = 0;
@@ -255,7 +264,6 @@ void process_min_price() {
 			}
 			strcat(min_char, "Najtaniej w: ");
 			for (i=0; i<min_expenses_count; ++i) {
-				g_print("%s\n", min_expenses[i]->shop);
 				min_char = strcat(min_char, min_expenses[i]->shop);
 				min_char = strcat(min_char, ", ");
 			}
@@ -288,7 +296,6 @@ void process_max_price() {
 			}
 			strcat(max_char, "Najdrożej w: ");
 			for (i=0; i<max_expenses_count; ++i) {
-				g_print("%s\n", max_expenses[i]->shop);
 				max_char = strcat(max_char, max_expenses[i]->shop);
 				max_char = strcat(max_char, ", ");
 			}
@@ -665,7 +672,6 @@ void fetch_shopping_list() {
 	Expense *list[expenses_count];
 	gtk_list_store_clear(shopping_list_store);
 	if (expenses_count != 0) {
-		printf("tmp_expenses_count: %d\n", expenses_count);
 		get_all_tmp_expenses(list);
 		for (counter = 0; counter < expenses_count; counter++) {
 			add_tmp_expense_to_table(list[counter]);
@@ -676,10 +682,8 @@ void fetch_shopping_list() {
 
 void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {
 	if (get_id_from_combo(exp_categories_combo, &selected_category_id) == 0) {
-			g_print("Wybrano %d\n", selected_category_id);
 			fetch_product_list();
  	}
-	g_print("Nie wybrano\n");
 	fetch_product_list();
 }
 
@@ -690,7 +694,6 @@ void on_exp_shops_combo_changed(GtkWidget *widget, gpointer data) {
 	if (gtk_combo_box_get_active_iter(exp_shops_combo, &iter)) {
 		GtkTreeModel *model = gtk_combo_box_get_model(GTK_COMBO_BOX(exp_shops_combo));
 		gtk_tree_model_get(model, &iter, 1, &last_selected_shop, -1);
-		printf("last_selected_shop: %s\n", last_selected_shop);
 	}	
 	if (count > 0) {
 		update_config("LAST_SELECTED_SHOP", last_selected_shop);
@@ -732,7 +735,6 @@ void create_expense_from_form(Expense *e) {
 	e->amount = atof(tmp);
 	tmp = g_strdup(gtk_entry_get_text(GTK_ENTRY(price_entry)));
 	e->price = atof(tmp);
-	printf("c_id: %d c: %s p_id: %d p: %s s_id: %d s: %s count: %d amount: %f price: %f\n", e->category_id, e->category, e->product_id, e->product, e->shop_id, e->shop, e->count, e->amount, e->price);
 }
 
 void create_expense_from_list(Expense *e) {
@@ -761,8 +763,6 @@ void on_count_cell_edited() {
 		gtk_tree_model_get(model, &iter, 3, &count, -1);
 		Expense *e = malloc(sizeof(Expense));
 		create_expense_from_list(e);
-		printf("id: %d\n", e->id);
-		printf("zmiana count na: %d\n", count);
 		gtk_list_store_set(GTK_LIST_STORE(shopping_list_store), &iter, 3, e->count, NULL);
 		update_tmp_count(e);
 		free(e);
@@ -780,7 +780,8 @@ void on_save_expense_button_clicked() {
 	gtk_list_store_clear(shopping_list_store);
 }
 
-/*void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {
+void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {}
+	/*
 	if (event->type == GDK_BUTTON_PRESS) {
 		GdkEventButton *event_button = (GdkEventButton*) event;
 		if (event_button->button == 3) {
