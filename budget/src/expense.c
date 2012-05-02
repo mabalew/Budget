@@ -7,16 +7,27 @@
 #include "db.h"
 #include "utils.h"
 
-int add_expense(Expense *e) {
+void fill_tmp_expense(sqlite3_stmt *res, Expense *e);
+
+int add_expense(Expense *e, int with_exp_date) {
 	char *msg = malloc(255);
 	sqlite3 *conn;
 	int error = 0;
-	sprintf(msg, "add_expense: adding [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+	if (with_exp_date == 0) {
+		sprintf(msg, "add_expense: adding [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+	} else {
+		sprintf(msg, "add_expense: adding [shop id: %d] [price: %.2f]", e->shop_id, e->price);
+	}
 	_log(INFO, msg);
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO expenses(exp_date, amount, product_id, shop_id, price) VALUES('%q', %.2f, %d, %d, %.2f)", e->exp_date, e->amount, e->product_id, e->shop_id, e->price);
+	char *sql = malloc(500);
+	if (with_exp_date == 0) {
+		sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO expenses(exp_date, amount, product_id, shop_id, price) VALUES('%q', %.2f, %d, %d, %.2f)", e->exp_date, e->amount, e->product_id, e->shop_id, e->price);
+	} else {
+		sql = sqlite3_mprintf("PRAGMA foreign_keys=ON; INSERT INTO expenses(amount, product_id, shop_id, price) VALUES(%.2f, %d, %d, %.2f)", e->amount, e->product_id, e->shop_id, e->price);
+	}
 	error = sqlite3_exec(conn, sql, 0, 0, 0);
 	if (error != SQLITE_OK) {
 		sprintf(msg, "add_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
@@ -27,7 +38,12 @@ int add_expense(Expense *e) {
 	}
 	sqlite3_close(conn);
 	sqlite3_free(sql);
-	sprintf(msg, "add_expense: added [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+
+	if (with_exp_date == 0) {
+		sprintf(msg, "add_expense: added [date: %s] [shop id: %d] [price: %.2f]", e->exp_date, e->shop_id, e->price);
+	} else {
+		sprintf(msg, "add_expense: added [shop id: %d] [price: %.2f]", e->shop_id, e->price);
+	}
 	_log(INFO, msg);
 	free(msg);
 	return error;
@@ -156,6 +172,22 @@ void fill_expense(sqlite3_stmt *res, Expense *e) {
 	e->shop_id = sqlite3_column_int(res, 9);
 	e->shop = malloc((strlen((char*)sqlite3_column_text(res, 10)) * sizeof(char)) + 1);
 	strcpy(e->shop, (char*)sqlite3_column_text(res, 10));
+}
+
+void fill_tmp_expense(sqlite3_stmt *res, Expense *e) {
+	e->id = sqlite3_column_int(res, 0);
+	e->category_id = sqlite3_column_int(res, 1);
+	e->category = malloc((strlen((char*)sqlite3_column_text(res, 2)) * sizeof(char)) + 1);
+	strcpy(e->category, (char*)sqlite3_column_text(res, 2));
+	e->product_id = sqlite3_column_int(res, 3);
+	e->product = malloc((strlen((char*)sqlite3_column_text(res, 4)) * sizeof(char)) + 1);
+	strcpy(e->product, (char*)sqlite3_column_text(res, 4));
+	e->count = sqlite3_column_int(res, 5);
+	e->amount = sqlite3_column_double(res, 6);
+	e->price = sqlite3_column_double(res, 7);
+	e->shop_id = sqlite3_column_int(res, 8);
+	e->shop = malloc((strlen((char*)sqlite3_column_text(res, 9)) * sizeof(char)) + 1);
+	strcpy(e->shop, (char*)sqlite3_column_text(res, 9));
 }
 
 // Funkcja pomocnicza dla funkcji max, min i avg.
@@ -322,6 +354,45 @@ int get_expenses_count(char *year, char *month) {
 	return row_count;
 }
 
+int get_tmp_expenses_count() {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0;
+	int row_count = 0;
+	sprintf(msg, "get_tmp_expenses_count: counting");
+	_log(INFO, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	if (error) {
+		sprintf(msg, "get_tmp_expenses_count: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+	char *sql = sqlite3_mprintf("SELECT count(*) FROM tmp_expenses");
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	if (error != SQLITE_OK) {
+		sprintf(msg, "get_tmp_expenses_count: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		row_count = sqlite3_column_int(res, 0);	
+	}
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sprintf(msg, "get_tmp_expenses_count: result [%d]", row_count);
+	_log(INFO, msg);
+	free(msg);
+	return row_count;
+}
+
 int get_expense(int expense_id, Expense *e) {
 	char *msg = malloc(255);
 	sqlite3 *conn;
@@ -394,11 +465,53 @@ int get_all_expenses(Expense *list[]) {
 	}
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	sprintf(msg, "get_all_expenses: got %d categories", counter);
+	sprintf(msg, "get_all_expenses: got %d expenses", counter);
 	_log(DEBUG, msg);
 	free(msg);
 	return error;
 }
+
+int get_all_tmp_expenses(Expense *list[]) {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0;
+	int counter = 0;
+	sprintf(msg, "get_all_tmp_expenses: getting all");
+	_log(DEBUG, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	if (error) {
+		sprintf(msg, "get_all_tmp_expenses: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		sqlite3_close(conn);
+		free(msg);
+		return error;
+	}
+
+	char *sql = "SELECT * FROM tmp_expenses";
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+	if (error != SQLITE_OK) {
+		sprintf(msg, "get_all_tmp_expenses: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		sqlite3_close(conn);
+		free(msg);
+		return error;
+	}
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		list[counter] = malloc(sizeof (Expense));
+		fill_tmp_expense(res, list[counter]);
+		counter++;
+	}
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sprintf(msg, "get_all_tmp_expenses: got %d expenses", counter);
+	_log(DEBUG, msg);
+	free(msg);
+	return error;
+}
+
 
 int get_expense_by_id(Expense *e) {
 	char *msg = malloc(255);
@@ -468,4 +581,45 @@ int get_expenses(char *year, char *month, Expense *list[]) {
 	_log(DEBUG, msg);
 	free(msg);
 	return error;
+}
+
+int del_all_tmp_expenses() {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	int error = 0;
+	sprintf(msg, "del_all_tmp_expenses: deleting");
+	_log(INFO, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("DELETE FROM tmp_expenses");
+	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	if (error != SQLITE_OK) {
+		sprintf(msg, "del_all_tmp_expenses: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+	sprintf(msg, "del_all_tmp_expenses: deleted");
+	_log(INFO, msg);
+	free(msg);
+	return error;
+}
+
+
+void copy_tmp_expenses_to_expenses() {
+	int tmp_expenses_count = get_tmp_expenses_count();
+	Expense *list[tmp_expenses_count];
+	int counter = 0;
+	get_all_tmp_expenses(list);
+
+	for (counter = 0; counter < tmp_expenses_count; counter++) {
+		int subcounter = 0;
+		for (subcounter = 0; subcounter < list[counter]->count; subcounter++) {
+			add_expense(list[counter], 1);
+		}
+	}
 }

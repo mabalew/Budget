@@ -9,6 +9,7 @@
 #include "shop_utils.h"
 #include "log.h"
 #include "report.h"
+#include "expense_utils.h"
 #include "expense.h"
 #include "config.h"
 
@@ -40,6 +41,7 @@ void on_treeview_categories_changed(GtkWidget *widget, gpointer window);
 void on_treeview_shops_changed(GtkWidget *widget, gpointer window);
 void print_status(int msg_no, int data);
 void fetch_product_list();
+void fetch_shopping_list();
 void fetch_category_list();
 void fetch_shop_list();
 void select_combo(GtkComboBox *combo, char *item_text);
@@ -386,6 +388,7 @@ void init_components() {
 		get_config("LAST_SELECTED_SHOP", last_selected_shop);
 		select_combo(exp_shops_combo, last_selected_shop);
 	}
+	fetch_shopping_list();
 	free(last_selected_shop);
 }
 
@@ -473,7 +476,7 @@ void print_status(int msg_no, int data) {
 	switch (msg_no) {
 		case 1: msg = "<span foreground='red'><b>Wpisz nazwę</b></span>";
 						break;
-		case 2:	msg = "<span foreground='blue'><b>Pobieranie %d produktów</b></span>";
+		case 2:	msg = "<span foreground='blue'><b>Pobieranie produktów</b></span>";
 						break;
 		case 3:	if (data > -1) {
 							sprintf(msg, "<span foreground='blue'><b>Pobrano %d produktów</b></span>", data);
@@ -539,6 +542,14 @@ void print_status(int msg_no, int data) {
 							gtk_label_set_markup(GTK_LABEL(err_label), msg);
 						}
 						 break;
+		case 16:	msg = "<span foreground='blue'><b>Pobieranie %d zakupów</b></span>";
+						break;
+		case 17:	if (data > -1) {
+							sprintf(msg, "<span foreground='blue'><b>Pobrano %d zakupów</b></span>", data);
+						} else {
+							sprintf(msg, "<span foreground='red'><b>NIE pobrano listy zakupów</b></span>");
+						}
+						break;
 
 		default:
 						msg = "";
@@ -647,6 +658,22 @@ void on_treeview_shops_changed(GtkWidget *widget, gpointer data) {
 }
 
 // Expenses
+void fetch_shopping_list() {
+	int expenses_count = get_tmp_expenses_count(selected_category_id);
+	print_status(16, -1);
+	int counter = 0;
+	Expense *list[expenses_count];
+	gtk_list_store_clear(shopping_list_store);
+	if (expenses_count != 0) {
+		printf("tmp_expenses_count: %d\n", expenses_count);
+		get_all_tmp_expenses(list);
+		for (counter = 0; counter < expenses_count; counter++) {
+			add_tmp_expense_to_table(list[counter]);
+		}
+	}
+	//free_expense_list(list, expenses_count);
+}
+
 void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {
 	if (get_id_from_combo(exp_categories_combo, &selected_category_id) == 0) {
 			g_print("Wybrano %d\n", selected_category_id);
@@ -710,7 +737,7 @@ void create_expense_from_form(Expense *e) {
 
 void create_expense_from_list(Expense *e) {
 	GtkTreeModel *model;
-	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_shopping_list), &model, &iter)) {
+	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_shopping_list_selection), &model, &iter)) {
 		e->product = malloc(255);
 		e->category = malloc(255);
 		e->shop = malloc(255);
@@ -728,9 +755,29 @@ void create_expense_from_list(Expense *e) {
 }
 
 void on_count_cell_edited() {
-	Expense *e = malloc(sizeof(Expense));
-	create_expense_from_list(e);
-	printf("id: %d\n", e->id);
+	GtkTreeModel *model;
+	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_shopping_list_selection), &model, &iter)) {
+		int count = 0;
+		gtk_tree_model_get(model, &iter, 3, &count, -1);
+		Expense *e = malloc(sizeof(Expense));
+		create_expense_from_list(e);
+		printf("id: %d\n", e->id);
+		printf("zmiana count na: %d\n", count);
+		gtk_list_store_set(GTK_LIST_STORE(shopping_list_store), &iter, 3, e->count, NULL);
+		update_tmp_count(e);
+		free(e);
+	}
+}
+
+void on_clear_tmp_expenses_button_clicked() {
+	del_all_tmp_expenses();
+	gtk_list_store_clear(shopping_list_store);
+}
+
+void on_save_expense_button_clicked() {
+	copy_tmp_expenses_to_expenses();
+	del_all_tmp_expenses();
+	gtk_list_store_clear(shopping_list_store);
 }
 
 /*void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {

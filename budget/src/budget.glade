@@ -105,14 +105,6 @@
       <column type="gchararray"/>
     </columns>
   </object>
-  <object class="GtkListStore" id="yearly_expenses_store">
-    <columns>
-      <!-- column-name category -->
-      <column type="gchararray"/>
-      <!-- column-name value -->
-      <column type="gfloat"/>
-    </columns>
-  </object>
   <object class="GtkWindow" id="window">
     <property name="can_focus">False</property>
     <property name="title" translatable="yes">Budget</property>
@@ -1344,10 +1336,46 @@
                                       <placeholder/>
                                     </child>
                                     <child>
-                                      <placeholder/>
+                                      <object class="GtkAlignment" id="alignment60">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <object class="GtkButton" id="clear_tmp_expenses_button">
+                                            <property name="label" translatable="yes">Wyczyść</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="use_action_appearance">False</property>
+                                            <signal name="clicked" handler="on_clear_tmp_expenses_button_clicked" swapped="no"/>
+                                          </object>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">1</property>
+                                      </packing>
                                     </child>
                                     <child>
-                                      <placeholder/>
+                                      <object class="GtkAlignment" id="alignment59">
+                                        <property name="visible">True</property>
+                                        <property name="can_focus">False</property>
+                                        <child>
+                                          <object class="GtkButton" id="save_expense_button">
+                                            <property name="label" translatable="yes">Zapisz</property>
+                                            <property name="visible">True</property>
+                                            <property name="can_focus">True</property>
+                                            <property name="receives_default">True</property>
+                                            <property name="use_action_appearance">False</property>
+                                            <signal name="clicked" handler="on_save_expense_button_clicked" swapped="no"/>
+                                          </object>
+                                        </child>
+                                      </object>
+                                      <packing>
+                                        <property name="expand">True</property>
+                                        <property name="fill">True</property>
+                                        <property name="position">2</property>
+                                      </packing>
                                     </child>
                                   </object>
                                   <packing>
@@ -2558,5 +2586,13 @@
         </child>
       </object>
     </child>
+  </object>
+  <object class="GtkListStore" id="yearly_expenses_store">
+    <columns>
+      <!-- column-name category -->
+      <column type="gchararray"/>
+      <!-- column-name value -->
+      <column type="gfloat"/>
+    </columns>
   </object>
 </interface>
