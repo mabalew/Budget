@@ -38,7 +38,7 @@ int __add_expense(int argc, char *argv[]) {
 	e->shop_id = atoi(argv[5]);
 	e->amount = atof(argv[6]);
 	e->price = atof(argv[7]);
-	int status = add_expense(e);
+	int status = add_expense(e, 0);
 	free(e);
 	return status;
 }
