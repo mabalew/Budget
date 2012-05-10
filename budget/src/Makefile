@@ -1,9 +1,43 @@
-# Configure installation parameters
+################################################################################
+#  file: Makefile                                                              #
+#  app: Budget                                                                 #
+#  author: Mariusz Balewski <mariusz@balewski.eu>                              #
+################################################################################
+################################################################################
+#                            DISCLAIMER                                        # 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND ANY EXPRESSED OR IMPLIED WARRANTIES,   #
+# INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND #
+# FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE       #
+# REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,      #
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, #
+# PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;  #
+# OR BUSINESS INTERRUPTION)                                                    #
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT   #
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY    #
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH  #
+# DAMAGE.                                                                      #
+################################################################################
+################################################################################
+#                            CONFIGURATION                                     # 
+###                                                                            # 
+# Configure installation parameters                                            #
+#                                                                              #
+# Set target path for installation (ie. /usr/local or C:\Progra~1\Budget       #
 TARGET_PATH=/home/mabalew/Programy/C/budget/dist
+###                                                                            #
+# Configure language                                                           #
+#                                                                              #
+# Select language for initial data inserted into database.                     #
+# Available options are:                                                       #
+# pl - Polish                                                                  #
+# en - English                                                                 #
 LANGUAGE=pl
+#                                                                              #
+################################################################################
 
-# Do not edit below this line
-################################################
+###############################
+# Do not edit below this line #
+###############################
 CC=gcc
 OPTS=-lsqlite3 -g3 -O0 -Wall 
 GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
@@ -21,9 +55,9 @@ copy-bin: bin create-dirs
 
 copy-db: create-db
 	mv budget.db $(HOME)/.budget/
+	mv logs.db $(HOME)/.budget/
 
 create-dirs:
-	@echo "Creating directories in $(TARGET_PATH)"
 	@if [ ! -d $(TARGET_PATH) ]; then \
 		mkdir $(TARGET_PATH); \
 	fi
@@ -54,7 +88,7 @@ budget-cli: lib
 budget-gui: lib main.c 
 	$(CC) main.c -o budget-gui $(LIBBUDGET_NAME).a $(GTK_OPTS) $(OPTS)
 
-lib: config.o db.o log.o utils.o help.o product.o string_verifier.o product_utils.o category.o category_utils.o shop.o shop_utils.o expense.o expense_utils.o user.o user_utils.o category.o category_utils.o report.o 
+lib: config.o db.o log.o utils.o help.o product.o string_verifier.o product_utils.o category.o category_utils.o shop.o shop_utils.o expense.o expense_utils.o user.o user_utils.o category.o category_utils.o report.o
 	ar -cvq $(LIBBUDGET_NAME).a *.o
 	rm -f *.o
 
@@ -91,9 +125,6 @@ expense.o: db.o expense.c expense.h db.o utils.o
 expense_utils.o: expense_utils.c expense_utils.h
 	$(CC) -c expense_utils.c -o expense_utils.o $(OPTS)
 
-report.o: db.o report.c config.o log.o db.o expense_utils.o expense.o utils.o
-	$(CC) db.o config.o log.o string_verifier.o help.o utils.o expense_utils.o expense.o -c report.c -o report.o $(OPTS)
-
 string_verifier.o: string_verifier.c string_verifier.h
 	$(CC) -c string_verifier.c -o string_verifier.o $(OPTS)
 
@@ -109,8 +140,12 @@ log.o: log.c db.o config.o
 help.o: help.c
 	$(CC) -c help.c -o help.o $(OPTS)
 
+report.o: report.c
+	$(CC) -c report.c -o report.o $(OPTS)
+
 create-db: db.sql
 	sqlite3 budget.db < db.sql
+	sqlite3 logs.db < logs.sql
 
 insert-example-data: create-db
 	@if [ -e example/categories_$(LANGUAGE).sql ]; then \
@@ -118,7 +153,7 @@ insert-example-data: create-db
 	fi
 
 clean:
-	rm -rf *.o budget-cli budget-gui budget report budget.db $(LIBBUDGET_NAME).a
+	rm -rf *.o budget-cli budget-gui budget budget.db $(LIBBUDGET_NAME).a
 
 set-db-path:
 	cat db.h | sed 's!DB_FILE "db!DB_FILE "$(HOME)/.budget!' > db2.h
