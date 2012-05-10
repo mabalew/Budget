@@ -1,38 +1,62 @@
+# Configure installation parameters
+TARGET_PATH=/home/mabalew/Programy/C/budget/dist
+LANGUAGE=pl
+
+# Do not edit below this line
+################################################
 CC=gcc
 OPTS=-lsqlite3 -g3 -O0 -Wall 
 GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
-TARGET_PATH=..
+LIBBUDGET_NAME=libbudget
 
-all: install
+all: install-dev
 
-bin: budget budget-cli budget-gui report.o
+#bin: budget budget-cli budget-gui report.o
+bin: set-db-path budget-gui
 
-copy: bin
-	cp budget budget-cli budget.glade budget-gui $(TARGET_PATH)
+copy-bin: bin create-dirs
+	cp budget.glade budget-gui $(TARGET_PATH)/bin
 
-install: bin copy
-	mkdir -p $(TARGET_PATH)/db
+#cp budget budget-cli budget.glade budget-gui $(TARGET_PATH)
+
+copy-db: create-db
+	mv budget.db $(HOME)/.budget/
+
+create-dirs:
+	@echo "Creating directories in $(TARGET_PATH)"
+	@if [ ! -d $(TARGET_PATH) ]; then \
+		mkdir $(TARGET_PATH); \
+	fi
+	@if [ ! -d $(TARGET_PATH)/bin ]; then \
+		mkdir $(TARGET_PATH)/bin; \
+	fi
+	@if [ ! -d $(HOME)/.budget ]; then \
+		mkdir $(HOME)/.budget; \
+	fi
+
+install: bin copy-bin create-db copy-db insert-example-data
+
+install-dev: bin copy-bin
 
 uninstall:
-	rm -f $(TARGET_PATH)/budget
-	rm -f $(TARGET_PATH)/budget-cli
-	rm -f $(TARGET_PATH)/budget-gui
+	rm -f $(TARGET_PATH)/bin/budget-gui
+	rm -f $(TARGET_PATH)/bin/budget.glade
+#	rm -f $(TARGET_PATH)/bin/budget
+#	rm -f $(TARGET_PATH)/bin/budget-cli
 #	rm -f $(TARGET_PATH)/report
 
 uninstall-purge: uninstall
-	rm -rf $(TARGET_PATH)/db
+	rm -r $(HOME)/.budget
 
-budget: budget-cli budget.c
-	$(CC) budget.c $(OPTS) -lncurses -o budget
-				
-budget-cli: config.o db.o log.o utils.o user.o category.o user_utils.o category_utils.o \
-				string_verifier.o help.o product.o product_utils.o report.o\
-				shop.o shop_utils.o expense.o expense_utils.o \
-				budget-cli.c 
-	$(CC) config.o db.o log.o utils.o user.o category.o user_utils.o category_utils.o string_verifier.o help.o product.o product_utils.o shop.o expense.o expense_utils.o shop_utils.o report.o budget-cli.c -o budget-cli $(OPTS)
+budget-cli: lib
+	$(CC) budget-cli.c -o budget-cli $(LIBBUDGET_NAME).a $(OPTS)
 
-budget-gui: config.o log.o utils.o help.o product.o product_utils.o category.o category_utils.o report.o shop.o shop_utils.o expense.o expense_utils.o budget main.c 
-	$(CC) config.o log.o db.o utils.o help.o string_verifier.o product.o product_utils.o category.o category_utils.o report.o shop.o shop_utils.o expense.o expense_utils.o main.c -o budget-gui $(GTK_OPTS) $(OPTS)
+budget-gui: lib main.c 
+	$(CC) main.c -o budget-gui $(LIBBUDGET_NAME).a $(GTK_OPTS) $(OPTS)
+
+lib: config.o db.o log.o utils.o help.o product.o string_verifier.o product_utils.o category.o category_utils.o shop.o shop_utils.o expense.o expense_utils.o user.o user_utils.o category.o category_utils.o report.o 
+	ar -cvq $(LIBBUDGET_NAME).a *.o
+	rm -f *.o
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)
@@ -85,8 +109,21 @@ log.o: log.c db.o config.o
 help.o: help.c
 	$(CC) -c help.c -o help.o $(OPTS)
 
-create_db: db.sql
+create-db: db.sql
 	sqlite3 budget.db < db.sql
 
+insert-example-data: create-db
+	@if [ -e example/categories_$(LANGUAGE).sql ]; then \
+		sqlite3 $(HOME)/.budget/budget.db < example/categories_$(LANGUAGE).sql; \
+	fi
+
 clean:
-	rm -rf *.o budget-cli budget-gui budget report budget.db
+	rm -rf *.o budget-cli budget-gui budget report budget.db $(LIBBUDGET_NAME).a
+
+set-db-path:
+	cat db.h | sed 's!DB_FILE "db!DB_FILE "$(HOME)/.budget!' > db2.h
+	cat db2.h | sed 's!LOG_DB_FILE "db!LOG_DB_FILE "$(HOME)/.budget!' > db3.h
+	cp db3.h db.h
+	rm db2.h db3.h
+
+#define LOG_DB_FILE "db/logs.db"
