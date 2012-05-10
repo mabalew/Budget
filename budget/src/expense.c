@@ -617,7 +617,9 @@ void copy_tmp_expenses_to_expenses() {
 
 	for (counter = 0; counter < tmp_expenses_count; counter++) {
 		int subcounter = 0;
+		double price = list[counter]->price / list[counter]->count;
 		for (subcounter = 0; subcounter < list[counter]->count; subcounter++) {
+			list[counter]->price = price;
 			add_expense(list[counter], 1);
 		}
 	}
