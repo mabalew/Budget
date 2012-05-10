@@ -1,7 +1,5 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-CREATE TABLE categories(id integer primary key autoincrement, category_name varchar2(100) unique not null);
-INSERT INTO "categories" VALUES(0,'-');
 INSERT INTO "categories" VALUES(1,'Pieczywo');
 INSERT INTO "categories" VALUES(2,'Nabial');
 INSERT INTO "categories" VALUES(3,'Mieso');
