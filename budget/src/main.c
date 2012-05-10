@@ -152,9 +152,9 @@ void fetch_monthly_exp_list() {
 	int counter = 0;
 	float sum = 0.0;
 	Row *list[rows_count];
-	fetch_monthly_report("2012", "02", list);
+	fetch_monthly_report(year, month, list);
 	gtk_list_store_clear(monthly_expenses_store);
-	if (rows_count != 0 && NULL != list[0]) {
+	if (rows_count > 0 && NULL != list[0]) {
 		for (counter = 0; counter < rows_count; counter++) {
 			gtk_list_store_append(monthly_expenses_store, &iter);
 			gtk_list_store_set(monthly_expenses_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
@@ -264,6 +264,7 @@ void process_min_price() {
 			}
 			strcat(min_char, "Najtaniej w: ");
 			for (i=0; i<min_expenses_count; ++i) {
+				g_print("%s\n", min_expenses[i]->shop);
 				min_char = strcat(min_char, min_expenses[i]->shop);
 				min_char = strcat(min_char, ", ");
 			}
@@ -296,6 +297,7 @@ void process_max_price() {
 			}
 			strcat(max_char, "Najdrożej w: ");
 			for (i=0; i<max_expenses_count; ++i) {
+				g_print("%s\n", max_expenses[i]->shop);
 				max_char = strcat(max_char, max_expenses[i]->shop);
 				max_char = strcat(max_char, ", ");
 			}
@@ -549,7 +551,7 @@ void print_status(int msg_no, int data) {
 							gtk_label_set_markup(GTK_LABEL(err_label), msg);
 						}
 						 break;
-		case 16:	msg = "<span foreground='blue'><b>Pobieranie %d zakupów</b></span>";
+		case 16:	sprintf(msg, "<span foreground='blue'><b>Pobieranie %d zakupów</b></span>", data);
 						break;
 		case 17:	if (data > -1) {
 							sprintf(msg, "<span foreground='blue'><b>Pobrano %d zakupów</b></span>", data);
@@ -682,8 +684,10 @@ void fetch_shopping_list() {
 
 void on_exp_categories_combo_changed(GtkWidget *widget, gpointer data) {
 	if (get_id_from_combo(exp_categories_combo, &selected_category_id) == 0) {
+			g_print("Wybrano %d\n", selected_category_id);
 			fetch_product_list();
  	}
+	g_print("Nie wybrano\n");
 	fetch_product_list();
 }
 
@@ -763,7 +767,9 @@ void on_count_cell_edited() {
 		gtk_tree_model_get(model, &iter, 3, &count, -1);
 		Expense *e = malloc(sizeof(Expense));
 		create_expense_from_list(e);
-		gtk_list_store_set(GTK_LIST_STORE(shopping_list_store), &iter, 3, e->count, NULL);
+		printf("id: %d\n", e->id);
+		printf("zmiana count na: %d\n", count);
+		gtk_list_store_set(GTK_LIST_STORE(shopping_list_store), &iter, 3, e->count, -1);
 		update_tmp_count(e);
 		free(e);
 	}
@@ -778,14 +784,15 @@ void on_save_expense_button_clicked() {
 	copy_tmp_expenses_to_expenses();
 	del_all_tmp_expenses();
 	gtk_list_store_clear(shopping_list_store);
+	fetch_monthly_exp_list();
+	fetch_yearly_exp_list();
 }
 
-void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {}
-	/*
+void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {
 	if (event->type == GDK_BUTTON_PRESS) {
 		GdkEventButton *event_button = (GdkEventButton*) event;
 		if (event_button->button == 3) {
 			gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, event_button->button, event_button->time);
 		}
 	}
-}*/
+}
