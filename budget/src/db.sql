@@ -74,3 +74,4 @@ CREATE TABLE tmp_expenses(
 
 INSERT INTO shops VALUES(0, '-');
 INSERT INTO categories VALUES(0, '-');
+INSERT INTO config VALUES('LOGGING_LEVEL', '2');
