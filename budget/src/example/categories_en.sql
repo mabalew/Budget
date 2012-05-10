@@ -1,0 +1,17 @@
+PRAGMA foreign_keys=OFF;
+BEGIN TRANSACTION;
+INSERT INTO "categories" VALUES(1,'Bread');
+INSERT INTO "categories" VALUES(2,'Dairy');
+INSERT INTO "categories" VALUES(3,'Meat');
+INSERT INTO "categories" VALUES(4,'Drinks');
+INSERT INTO "categories" VALUES(5,'Other');
+INSERT INTO "categories" VALUES(6,'Stimulants');
+INSERT INTO "categories" VALUES(7,'Vegetables');
+INSERT INTO "categories" VALUES(8,'Canned');
+INSERT INTO "categories" VALUES(9,'Pasta');
+INSERT INTO "categories" VALUES(10,'Sausage');
+INSERT INTO "categories" VALUES(11,'Frozen food');
+INSERT INTO "categories" VALUES(12,'Snacks');
+INSERT INTO "categories" VALUES(13,'Candy');
+INSERT INTO "categories" VALUES(14,'Spices');
+COMMIT;
