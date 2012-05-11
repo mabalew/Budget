@@ -43,10 +43,10 @@ OPTS=-lsqlite3 -g3 -O0 -Wall
 GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
 LIBBUDGET_NAME=libbudget
 
-all: install-dev
+all: bin
 
 #bin: budget budget-cli budget-gui report.o
-bin: set-db-path budget-gui
+bin: set-db-path budget-gui create-db copy-db
 
 copy-bin: bin create-dirs
 	cp budget.glade budget-gui $(TARGET_PATH)/bin
@@ -54,8 +54,15 @@ copy-bin: bin create-dirs
 #cp budget budget-cli budget.glade budget-gui $(TARGET_PATH)
 
 copy-db: create-db
-	mv budget.db $(HOME)/.budget/
-	mv logs.db $(HOME)/.budget/
+	@if [ ! -d $(HOME)/.budget ]; then \
+		mkdir $(HOME)/.budget; \
+	fi
+	@if [ ! -e $(HOME)/.budget/budget.db ]; then \
+		mv budget.db $(HOME)/.budget/; \
+	fi
+	@if [ ! -e $(HOME)/.budget/logs.db ]; then \
+		mv logs.db $(HOME)/.budget/; \
+	fi
 
 create-dirs:
 	@if [ ! -d $(TARGET_PATH) ]; then \
@@ -68,7 +75,7 @@ create-dirs:
 		mkdir $(HOME)/.budget; \
 	fi
 
-install: bin copy-bin create-db copy-db insert-example-data
+install: bin copy-bin insert-example-data
 
 install-dev: bin copy-bin
 
@@ -90,7 +97,6 @@ budget-gui: lib main.c
 
 lib: config.o db.o log.o utils.o help.o product.o string_verifier.o product_utils.o category.o category_utils.o shop.o shop_utils.o expense.o expense_utils.o user.o user_utils.o category.o category_utils.o report.o
 	ar -cvq $(LIBBUDGET_NAME).a *.o
-	rm -f *.o
 
 user.o: db.o user.c user.h
 	$(CC) -c user.c -o user.o $(OPTS)
@@ -144,8 +150,12 @@ report.o: report.c
 	$(CC) -c report.c -o report.o $(OPTS)
 
 create-db: db.sql
-	sqlite3 budget.db < db.sql
-	sqlite3 logs.db < logs.sql
+	@if [ ! -e budget.db ]; then \
+		sqlite3 budget.db < db.sql; \
+	fi
+	@if [ ! -e logs.db ]; then \
+		sqlite3 logs.db < logs.sql; \
+	fi
 
 insert-example-data: create-db
 	@if [ -e example/categories_$(LANGUAGE).sql ]; then \

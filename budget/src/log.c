@@ -24,7 +24,8 @@ void _log(Level level, char *msg) {
 		char *sql = sqlite3_mprintf("INSERT INTO logs(message, level) VALUES('%s', %d)", msg, level);
 		error = sqlite3_exec(conn, sql, 0, 0, 0);
 		if (error != SQLITE_OK) {
-			printf("ERROR: %d\n",error);
+			printf("_log: SQL Error(%d): %s\n",error, sqlite3_errmsg(conn));
+			exit(error);
 		}
 		sqlite3_close(conn);
 		sqlite3_free(sql);
@@ -39,16 +40,16 @@ int get_logs_count(Level level) {
 	int row_count = 0;
 	error = sqlite3_open(LOG_DB_FILE, &conn);
 	if (error) {
-		puts("Can't open database");
-		return error;
+		printf("_log: SQL Error(%d): %s\n",error, sqlite3_errmsg(conn));
+		exit(error);
 	}
 	char *sql = malloc(255);
 	sprintf(sql, "SELECT COUNT(*) FROM logs WHERE level=%d", level);
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
-		return error;
+		printf("_log: SQL Error(%d): %s\n",error, sqlite3_errmsg(conn));
+		exit(error);
 	}
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -67,7 +68,7 @@ void get_logs(Level level, Log *list[]) {
 	int counter = 0;
 	error = sqlite3_open(LOG_DB_FILE, &conn);
 	if (error) {
-		puts("Can't open database");
+		printf("_log: SQL Error(%d): %s\n",error, sqlite3_errmsg(conn));
 		exit(error);
 	}
 
@@ -97,7 +98,7 @@ void get_logs(Level level, Log *list[]) {
 
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 	if (error != SQLITE_OK) {
-		printf("ERROR: %d\n", error);
+		printf("_log: SQL Error(%d): %s\n",error, sqlite3_errmsg(conn));
 		exit(error);
 	}
 

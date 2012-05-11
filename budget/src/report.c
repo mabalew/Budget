@@ -7,6 +7,7 @@
 #include "expense_utils.h"
 #include "db.h"
 #include "report.h"
+#include "log.h"
 
 void get_exp_from(char *argv[], Expense *list[]);
 void get_monthly_expenses(char *year, char *month, Row **rows);
@@ -99,6 +100,7 @@ void fetch_monthly_report(char *year, char *month, Row **rows) {
 }
 
 void fetch_shopping_report(Row **rows) {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -106,7 +108,7 @@ void fetch_shopping_report(Row **rows) {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = "select category_name, sum(price) as price from tmp_expenses group by category_name order by price desc";
+	char *sql = "select category, sum(price) as price from tmp_expenses group by category order by price desc";
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -119,12 +121,14 @@ void fetch_shopping_report(Row **rows) {
 
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	sqlite3_free(sql);
 
 	if (error != 0) {
-		printf("ERROR: %d\n", error);
+		sprintf(msg, "fetch_shopping_report: SQL Error(%d): %s",error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
 		exit(error);
 	}
+	free(msg);
 }
 
 void get_monthly_expenses(char *year, char *month, Row **rows) {
@@ -238,6 +242,7 @@ int count_yearly_categories(char *year) {
 }
 
 int count_shopping_categories() {
+	char *msg = malloc(255);
 	sqlite3 *conn;
 	sqlite3_stmt *res;
 	const char *tail;
@@ -245,7 +250,7 @@ int count_shopping_categories() {
 	error = sqlite3_open(DB_FILE, &conn);
 	check_db_open(error);
 
-	char *sql = "select count(*) from (select category_name from tmp_expenses group by category_name)";
+	char *sql = "select count(*) from (select category from tmp_expenses group by category)";
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {
@@ -254,10 +259,11 @@ int count_shopping_categories() {
 
 	sqlite3_finalize(res);
 	sqlite3_close(conn);
-	sqlite3_free(sql);
 
 	if (error != 0) {
-		printf("ERROR: %d\n", error);
+		sprintf(msg, "count_shopping_categories: SQL Error(%d): %s",error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
 		exit(error);
 	}
 	return counter;

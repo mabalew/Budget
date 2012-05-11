@@ -1264,7 +1264,7 @@
                                     <property name="can_focus">False</property>
                                     <property name="yscale">0</property>
                                     <child>
-                                      <object class="GtkLabel" id="label12">
+                                      <object class="GtkLabel" id="sum_shopping_label">
                                         <property name="visible">True</property>
                                         <property name="can_focus">False</property>
                                         <property name="label" translatable="yes">Podsumowanie:</property>

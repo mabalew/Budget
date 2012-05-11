@@ -1,4 +1,4 @@
-//TODO dorobić label sum_shopping_label w glade i obsłużyć. Wypełnić tabelę z podsumowaniem zakupów po każdorazowym dodaniu zakupu.
+//TODO dorobić obsługę delete_new_expense_button
 
 #include <stdlib.h>
 #include <gtk/gtk.h>
@@ -23,8 +23,8 @@ GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *
 GtkButton *min_button, *max_button, *delete_new_expense_button;
 GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;
 GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;
-GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store;
-GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list;
+GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store, *new_expenses_store;
+GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list, *treeview_new_expenses;
 GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;
 GtkTreeIter iter;
 Expense **max_expenses, **min_expenses;
@@ -209,16 +209,16 @@ void fetch_tmp_shopping_report() {
 	float sum = 0.0;
 	Row *list[rows_count];
 	fetch_shopping_report(list);
-	gtk_list_store_clear(shopping_list_store);
+	gtk_list_store_clear(new_expenses_store);
 	if (rows_count != 0 && NULL != list[0]) {
 		for (counter = 0; counter < rows_count; counter++) {
-			gtk_list_store_append(shopping_list_store, &iter);
-			gtk_list_store_set(shopping_list_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
+			gtk_list_store_append(new_expenses_store, &iter);
+			gtk_list_store_set(new_expenses_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
 			sum += list[counter]->value;
 		}
 	}
 	char *c_sum = malloc(30);
-	sprintf(c_sum, "<b>Razem: %.2f</b>", sum);
+	sprintf(c_sum, "<b>Podsumowanie: %.2f</b>", sum);
 	gtk_label_set_markup(sum_shopping_label, c_sum);
 	free(c_sum);
 	free_rows_list(list, rows_count);
@@ -421,6 +421,7 @@ void init_components() {
 	fetch_shop_list();
 	fetch_monthly_exp_list();
 	fetch_yearly_exp_list();
+	fetch_tmp_shopping_report();
 
 	int last_selected_shop_is_set = 1;
 	char *last_selected_shop = malloc(255);
@@ -497,6 +498,9 @@ int main(int argc, char *argv[]) {
 	sum_shopping_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_shopping_label"));
 
 	delete_new_expense_button = GTK_BUTTON(gtk_builder_get_object(builder, "delete_new_expense_button"));
+
+	treeview_new_expenses = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_new_expenses"));
+	new_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "new_expenses_store"));
 
 	exp_tmp_context_menu = GTK_MENU(gtk_builder_get_object(builder, "exp_tmp_context_menu"));
 	exp_tmp_menuitem_delete = GTK_MENU_ITEM(gtk_builder_get_object(builder, "exp_tmp_menuitem_delete"));
@@ -748,6 +752,7 @@ void on_add_new_expense_button_clicked(GtkWidget *widget, gpointer data) {
 	add_tmp_expense(e, &id);
 	e->id = id;
 	add_tmp_expense_to_table(e);
+	fetch_tmp_shopping_report();
 }
 
 void add_tmp_expense_to_table(Expense *e) {
@@ -811,6 +816,7 @@ void on_count_cell_edited() {
 void on_clear_tmp_expenses_button_clicked() {
 	del_all_tmp_expenses();
 	gtk_list_store_clear(shopping_list_store);
+	fetch_tmp_shopping_report();
 }
 
 void on_save_expense_button_clicked() {
