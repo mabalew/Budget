@@ -1,5 +1,6 @@
 src/*.o
 src/*.a
+src/tags
 db
 budget
 budget.glade
