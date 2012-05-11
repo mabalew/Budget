@@ -1,3 +1,5 @@
+//TODO dorobić label sum_shopping_label w glade i obsłużyć. Wypełnić tabelę z podsumowaniem zakupów po każdorazowym dodaniu zakupu.
+
 #include <stdlib.h>
 #include <gtk/gtk.h>
 #include <string.h>
@@ -17,7 +19,7 @@
 GtkBuilder *builder;
 GtkMenu *exp_tmp_context_menu;
 GtkMenuItem *exp_tmp_menuitem_delete;
-GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label;
+GtkLabel  *status_label, *err_label, *avg_value_label, *shops_max_price_label, *shops_min_price_label, *sum_month_label, *sum_year_label, *sum_shopping_label;
 GtkButton *min_button, *max_button, *delete_new_expense_button;
 GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_entry, *count_entry, *amount_entry, *price_entry;
 GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;
@@ -170,13 +172,19 @@ void fetch_monthly_exp_list() {
 }
 
 void fetch_yearly_exp_list() {
-	int rows_count = count_yearly_categories("2012");
+	time_t t;
+	struct tm *tm;
+	char year[10];
+	t = time(NULL);
+	tm = localtime(&t);
+	strftime(year, sizeof(year), "%Y", tm);
+	int rows_count = count_yearly_categories(year);
 	char *msg = malloc(125);
 	print_status(6, rows_count);
 	int counter = 0;
 	float sum = 0.0;
 	Row *list[rows_count];
-	fetch_yearly_report("2012", list);
+	fetch_yearly_report(year, list);
 	gtk_list_store_clear(yearly_expenses_store);
 	if (rows_count != 0 && NULL != list[0]) {
 		for (counter = 0; counter < rows_count; counter++) {
@@ -188,6 +196,30 @@ void fetch_yearly_exp_list() {
 	char *c_sum = malloc(30);
 	sprintf(c_sum, "<b>Razem: %.2f</b>", sum);
 	gtk_label_set_markup(sum_year_label, c_sum);
+	free(c_sum);
+	free_rows_list(list, rows_count);
+	free(msg);
+}
+
+void fetch_tmp_shopping_report() {
+	int rows_count = count_shopping_categories();
+	char *msg = malloc(125);
+	print_status(6, rows_count);
+	int counter = 0;
+	float sum = 0.0;
+	Row *list[rows_count];
+	fetch_shopping_report(list);
+	gtk_list_store_clear(shopping_list_store);
+	if (rows_count != 0 && NULL != list[0]) {
+		for (counter = 0; counter < rows_count; counter++) {
+			gtk_list_store_append(shopping_list_store, &iter);
+			gtk_list_store_set(shopping_list_store, &iter, 0, list[counter]->category, 1, list[counter]->value, -1);
+			sum += list[counter]->value;
+		}
+	}
+	char *c_sum = malloc(30);
+	sprintf(c_sum, "<b>Razem: %.2f</b>", sum);
+	gtk_label_set_markup(sum_shopping_label, c_sum);
 	free(c_sum);
 	free_rows_list(list, rows_count);
 	free(msg);
@@ -462,6 +494,7 @@ int main(int argc, char *argv[]) {
 
 	sum_month_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_month_label"));
 	sum_year_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_year_label"));
+	sum_shopping_label = GTK_LABEL(gtk_builder_get_object(builder, "sum_shopping_label"));
 
 	delete_new_expense_button = GTK_BUTTON(gtk_builder_get_object(builder, "delete_new_expense_button"));
 
