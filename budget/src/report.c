@@ -98,6 +98,35 @@ void fetch_monthly_report(char *year, char *month, Row **rows) {
 	get_monthly_expenses(year, month, rows);
 }
 
+void fetch_shopping_report(Row **rows) {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0, counter = 0;
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = "select category_name, sum(price) as price from tmp_expenses group by category_name order by price desc";
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		rows[counter] = malloc(sizeof(Row));
+		rows[counter]->category = malloc(sizeof(char) * strlen((char*)sqlite3_column_text(res, 0)) + 1);
+		strcpy(rows[counter]->category, (char*)sqlite3_column_text(res, 0));
+		rows[counter]->value = sqlite3_column_double(res, 1);
+		counter++;
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+
+	if (error != 0) {
+		printf("ERROR: %d\n", error);
+		exit(error);
+	}
+}
+
 void get_monthly_expenses(char *year, char *month, Row **rows) {
 	sqlite3 *conn;
 	sqlite3_stmt *res;
@@ -191,6 +220,32 @@ int count_yearly_categories(char *year) {
 	check_db_open(error);
 
 	char *sql = sqlite3_mprintf("select count(*) from (select category_name from v_expenses where exp_date >= '%s-01-01' and exp_date <= '%s-12-31' group by category_name)", year, year);
+	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
+
+	while (sqlite3_step(res) == SQLITE_ROW) {
+		counter = sqlite3_column_int(res, 0);
+	}
+
+	sqlite3_finalize(res);
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+
+	if (error != 0) {
+		printf("ERROR: %d\n", error);
+		exit(error);
+	}
+	return counter;
+}
+
+int count_shopping_categories() {
+	sqlite3 *conn;
+	sqlite3_stmt *res;
+	const char *tail;
+	int error = 0, counter = 0;
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = "select count(*) from (select category_name from tmp_expenses group by category_name)";
 	error = sqlite3_prepare_v2(conn, sql, -1, &res, &tail);
 
 	while (sqlite3_step(res) == SQLITE_ROW) {

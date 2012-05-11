@@ -7,6 +7,8 @@ typedef struct report_row {
 void free_rows_list(Row **rows, int count);
 void fetch_monthly_report(char *month, char *year, Row **rows);
 void fetch_yearly_report(char *year, Row **rows);
+void fetch_shopping_report(Row **rows);
 int count_monthly_categories(char *year, char *month);
 int count_yearly_categories(char *year);
+int count_shopping_categories();
 #endif
