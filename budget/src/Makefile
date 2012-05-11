@@ -23,7 +23,7 @@
 # Configure installation parameters                                            #
 #                                                                              #
 # Set target path for installation (ie. /usr/local or C:\Progra~1\Budget       #
-TARGET_PATH=/home/mabalew/Programy/C/budget/dist
+TARGET_PATH=/usr/local
 ###                                                                            #
 # Configure language                                                           #
 #                                                                              #
