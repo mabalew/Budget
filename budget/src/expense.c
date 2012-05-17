@@ -582,6 +582,33 @@ int get_expenses(char *year, char *month, Expense *list[]) {
 	return error;
 }
 
+int del_tmp_expense(int id) {
+	char *msg = malloc(255);
+	sqlite3 *conn;
+	int error = 0;
+	sprintf(msg, "del_tmp_expense: deleting");
+	_log(INFO, msg);
+	error = sqlite3_open(DB_FILE, &conn);
+	check_db_open(error);
+
+	char *sql = sqlite3_mprintf("DELETE FROM tmp_expenses WHERE id=%d", id);
+	error = sqlite3_exec(conn, sql, 0, 0, 0);
+	if (error != SQLITE_OK) {
+		sprintf(msg, "del_tmp_expense: SQL Error(%d): %s", error, sqlite3_errmsg(conn));
+		_log(ERROR, msg);
+		free(msg);
+		sqlite3_close(conn);
+		return error;
+	}
+	sqlite3_close(conn);
+	sqlite3_free(sql);
+	sprintf(msg, "del_tmp_expense: deleted");
+	_log(INFO, msg);
+	free(msg);
+	return error;
+
+}
+
 int del_all_tmp_expenses() {
 	char *msg = malloc(255);
 	sqlite3 *conn;

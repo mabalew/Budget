@@ -28,6 +28,7 @@ int add_expense(Expense *e, int with_exp_date); // with_exp_date == 0 means,
 																							  // that *e contains exp_date
 int add_tmp_expense(Expense *e, signed int *rowid);
 int del_expense(Expense *c);
+int del_tmp_expense(int id);
 int del_all_tmp_expenses();
 int update_expense(Expense *old_expense, Expense *new_expense);
 int update_tmp_count(Expense *e);

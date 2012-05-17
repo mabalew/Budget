@@ -25,10 +25,10 @@ GtkWidget  *product_new_name_entry, *category_new_name_entry, *shop_new_name_ent
 GtkComboBox  *product_new_categories_cb, *exp_categories_combo, *exp_shops_combo, *exp_products_combo;
 GtkListStore *products_store, *categories_store, *shops_store, *monthly_expenses_store, *yearly_expenses_store, *shopping_list_store, *new_expenses_store;
 GtkTreeView *treeview_products, *treeview_categories, *treeview_shops, *treeview_monthly_exp, *treeview_yearly_exp, *treeview_shopping_list, *treeview_new_expenses;
-GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection;
+GtkTreeSelection *treeview_products_selection, *treeview_categories_selection, *treeview_shops_selection, *treeview_monthly_exp_selection, *treeview_yearly_exp_selection, *treeview_shopping_list_selection, *treeview_shopping_list_selection;
 GtkTreeIter iter;
 Expense **max_expenses, **min_expenses;
-int max_expenses_count, min_expenses_count, selected_category_id=0;
+int max_expenses_count, min_expenses_count, selected_category_id=0, selected_shopping_id;
 double max_price, min_price, avg_price;
 char *old_product_name, *old_category_name, *new_category_name, *old_shop_name, *new_shop_name;
 
@@ -41,6 +41,7 @@ void on_category_add_button_clicked(GtkWidget *widget, gpointer data);
 void on_category_update_button_clicked(GtkWidget *widget, gpointer data);
 void on_category_delete_button_clicked(GtkWidget *widget, gpointer data);
 void on_treeview_categories_changed(GtkWidget *widget, gpointer window);
+void on_treeview_shopping_list_changed();
 void on_treeview_shops_changed(GtkWidget *widget, gpointer window);
 void print_status(int msg_no, int data);
 void fetch_product_list();
@@ -485,6 +486,7 @@ int main(int argc, char *argv[]) {
 	shopping_list_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "shopping_list_store"));
 	treeview_shopping_list = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_shopping_list"));
 	treeview_shopping_list_selection = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview_shopping_list));
+	g_signal_connect(treeview_shopping_list_selection, "changed", G_CALLBACK(on_treeview_shopping_list_changed), NULL);
 
 	yearly_expenses_store = GTK_LIST_STORE(gtk_builder_get_object(builder, "yearly_expenses_store"));
 	treeview_yearly_exp = GTK_TREE_VIEW(gtk_builder_get_object(builder, "treeview_yearly_exp"));
@@ -823,8 +825,25 @@ void on_save_expense_button_clicked() {
 	copy_tmp_expenses_to_expenses();
 	del_all_tmp_expenses();
 	gtk_list_store_clear(shopping_list_store);
+	gtk_list_store_clear(new_expenses_store);
 	fetch_monthly_exp_list();
 	fetch_yearly_exp_list();
+}
+
+void on_treeview_shopping_list_changed() {
+	GtkTreeModel *model;
+	if (gtk_tree_selection_get_selected(GTK_TREE_SELECTION(treeview_shopping_list_selection), &model, &iter)) {
+		gtk_tree_model_get(model, &iter, 0, &selected_shopping_id, -1);
+	}
+}
+
+void on_delete_new_expense_button_clicked() {
+	if (selected_shopping_id != 0) {
+		del_tmp_expense(selected_shopping_id);
+		fetch_shopping_list();
+		fetch_tmp_shopping_report();
+		selected_shopping_id = 0;
+	}
 }
 
 void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {

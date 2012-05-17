@@ -2,6 +2,7 @@ CREATE TABLE categories(
 	id integer primary key autoincrement,
 	category_name varchar2(100) unique not null
 );
+CREATE UNIQUE INDEX categories_idx ON categories(id);
 
 CREATE TABLE products(
 	id integer primary key autoincrement,
@@ -15,11 +16,13 @@ CREATE TABLE shops(
 	id integer primary key autoincrement,
 	shop_name varchar2(100) unique
 );
+CREATE UNIQUE INDEX shops_idx ON shops(id);
 
 CREATE TABLE users(
 	id integer primary key autoincrement,
 	login varchar2(50), password varchar2(32)
 );
+CREATE UNIQUE INDEX users_idx ON users(id);
 
 CREATE TABLE expenses(
 	id integer primary key autoincrement,
@@ -31,6 +34,7 @@ CREATE TABLE expenses(
 	foreign key(shop_id) references shops(id),
 	foreign key(product_id) references products(id)
 );
+CREATE UNIQUE INDEX expenses_idx ON expenses(id);
 
 CREATE VIEW v_expenses as
 select e.id [exp id],
@@ -71,6 +75,7 @@ CREATE TABLE tmp_expenses(
 	foreign key(product_id)  references products(id),
 	foreign key(shop_id)     references shops(id)
 );
+CREATE UNIQUE INDEX tmp_expenses_idx ON tmp_expenses(id);
 
 INSERT INTO shops VALUES(0, '-');
 INSERT INTO categories VALUES(0, '-');

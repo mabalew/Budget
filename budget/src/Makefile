@@ -39,7 +39,7 @@ LANGUAGE=pl
 # Do not edit below this line #
 ###############################
 CC=gcc
-OPTS=-lsqlite3 -g3 -O0 -Wall 
+OPTS=-lsqlite3 -O0 -Wall 
 GTK_OPTS=`pkg-config --cflags --libs gtk+-2.0` -export-dynamic
 LIBBUDGET_NAME=libbudget
 
