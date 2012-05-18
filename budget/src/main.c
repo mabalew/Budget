@@ -15,6 +15,7 @@
 #include "expense_utils.h"
 #include "expense.h"
 #include "config.h"
+#include "db.h"
 
 GtkBuilder *builder;
 GtkMenu *exp_tmp_context_menu;
@@ -853,4 +854,27 @@ void on_exp_tmp_menuitem_delete_activate(GtkWidget *widget, GdkEvent *event) {
 			gtk_menu_popup(GTK_MENU(widget), NULL, NULL, NULL, NULL, event_button->button, event_button->time);
 		}
 	}
+}
+
+void on_backup_button_clicked() {
+	struct tm *tm;
+	time_t t;
+	char year[5];
+	char month[3];
+	char day[3];
+	char hour[3];
+	char min[3];
+	t = time(NULL);
+	tm = localtime(&t);
+	strftime(year, sizeof(year), "%Y", tm);
+	strftime(month, sizeof(month), "%m", tm);
+	strftime(day, sizeof(day), "%d", tm);
+	strftime(hour, sizeof(hour), "%h", tm);
+	strftime(min, sizeof(min), "%M", tm);
+
+	char *backup_file = malloc(35);
+	sprintf(backup_file, "budget_backup-%s-%s-%s_%s_%s.dbb", year, month, day, hour, min);
+	int rc = backup_db(backup_file);
+	free(backup_file);
+	printf("Backup returned code: %d\n", rc);
 }
