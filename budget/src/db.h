@@ -4,5 +4,6 @@
 #define DB_FILE "/home/mabalew/.budget/budget.db"
 #define LOG_DB_FILE "/home/mabalew/.budget/logs.db"
 void check_db_open(int error);
+void export_to_file(char *file);
 
 #endif
